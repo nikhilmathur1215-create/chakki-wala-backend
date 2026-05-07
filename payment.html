@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Secure Checkout - Harvest Hearth</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "secondary-container": "#f4ddb2",
+                        "on-tertiary-fixed-variant": "#802918",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#934b19",
+                        "on-secondary-container": "#71613e",
+                        "surface-container-high": "#e8e8e3",
+                        "tertiary": "#8c3220",
+                        "surface-container": "#eeeee9",
+                        "surface-bright": "#fafaf5",
+                        "tertiary-fixed": "#ffdad3",
+                        "on-error-container": "#93000a",
+                        "surface": "#fafaf5",
+                        "on-primary-container": "#ffe1d2",
+                        "primary-fixed-dim": "#ffb68c",
+                        "on-tertiary": "#ffffff",
+                        "outline-variant": "#dac1b8",
+                        "on-surface": "#1a1c19",
+                        "on-surface-variant": "#54433c",
+                        "on-primary-fixed-variant": "#753401",
+                        "on-background": "#1a1c19",
+                        "surface-dim": "#dadad5",
+                        "on-tertiary-container": "#ffe1da",
+                        "on-primary-fixed": "#321200",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#f7e0b5",
+                        "inverse-primary": "#ffb68c",
+                        "on-secondary-fixed-variant": "#544525",
+                        "primary-fixed": "#ffdbc9",
+                        "primary": "#803d0a",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#ab4935",
+                        "surface-container-highest": "#e3e3de",
+                        "secondary-fixed-dim": "#dac49b",
+                        "on-tertiary-fixed": "#3e0500",
+                        "primary-container": "#9e5421",
+                        "tertiary-fixed-dim": "#ffb4a5",
+                        "surface-variant": "#e3e3de",
+                        "on-secondary-fixed": "#251a01",
+                        "on-secondary": "#ffffff",
+                        "background": "#fafaf5",
+                        "surface-container-low": "#f4f4ef",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2f312e",
+                        "secondary": "#6d5c3a",
+                        "outline": "#87736b",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#f1f1ec"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #fafaf5;
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface mb-24 md:mb-0">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 w-full z-50 flex items-center justify-between px-6 h-16 bg-[#fafaf5] dark:bg-stone-900 tonal-shift">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#803d0a] dark:text-[#ffdbc9] active:scale-95 transition-transform cursor-pointer" data-icon="arrow_back">arrow_back</span>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold text-lg tracking-tight text-[#803d0a] dark:text-[#ffdbc9]">Secure Checkout</h1>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#54433c] dark:text-stone-400" data-icon="lock" style="font-variation-settings: 'FILL' 1;">lock</span>
+</div>
+</header>
+<main class="pt-20 pb-12 px-6 max-w-2xl mx-auto space-y-8">
+<!-- Order Summary Section -->
+<section class="bg-surface-container-lowest rounded-xl p-6 shadow-[0_-4px_20px_rgba(50,18,0,0.04)]">
+<div class="flex justify-between items-end">
+<div>
+<p class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Amount Payable</p>
+<h2 class="font-headline font-extrabold text-3xl text-primary mt-1">₹488.25</h2>
+</div>
+<div class="text-right">
+<p class="font-body text-sm text-on-surface-variant">Order #HH-92834</p>
+<button class="text-primary font-bold text-sm hover:opacity-80 transition-opacity">View Details</button>
+</div>
+</div>
+</section>
+<!-- Payment Methods Grid -->
+<div class="space-y-6">
+<h3 class="font-headline font-bold text-xl text-on-surface px-1">Payment Method</h3>
+<!-- UPI Section -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden">
+<div class="p-5 border-b border-outline-variant/15 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="account_balance_wallet" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span class="font-headline font-bold text-lg">UPI Payments</span>
+</div>
+<div class="p-5 space-y-4">
+<!-- Google Pay -->
+<label class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl cursor-pointer border-2 border-transparent has-[:checked]:border-primary transition-all">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-surface-container flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="payments">payments</span>
+</div>
+<span class="font-body font-semibold">Google Pay</span>
+</div>
+<input checked="" class="w-5 h-5 text-primary border-outline focus:ring-primary" name="payment_method" type="radio" value="gpay"/>
+</label>
+<!-- PhonePe -->
+<label class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl cursor-pointer border-2 border-transparent has-[:checked]:border-primary transition-all">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-surface-container flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="account_balance">account_balance</span>
+</div>
+<span class="font-body font-semibold">PhonePe</span>
+</div>
+<input class="w-5 h-5 text-primary border-outline focus:ring-primary" name="payment_method" type="radio" value="phonepe"/>
+</label>
+<!-- Paytm -->
+<label class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl cursor-pointer border-2 border-transparent has-[:checked]:border-primary transition-all">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-surface-container flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="wallet">wallet</span>
+</div>
+<span class="font-body font-semibold">Paytm</span>
+</div>
+<input class="w-5 h-5 text-primary border-outline focus:ring-primary" name="payment_method" type="radio" value="paytm"/>
+</label>
+<!-- Other UPI -->
+<div class="mt-2 space-y-3">
+<label class="flex items-center gap-2 px-1">
+<input class="w-5 h-5 text-primary border-outline focus:ring-primary" name="payment_method" type="radio" value="other_upi"/>
+<span class="font-body text-sm font-medium text-on-surface-variant">Add New UPI ID</span>
+</label>
+<div class="relative">
+<input class="w-full bg-surface-container-high border-none rounded-xl px-4 py-3 text-on-surface placeholder:text-outline focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all" placeholder="username@bank" type="text"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-primary font-bold text-sm px-2">Verify</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Cash on Delivery Section -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden">
+<label class="flex items-center justify-between p-5 cursor-pointer group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-secondary-container flex items-center justify-center rounded-full text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="local_shipping" style="font-variation-settings: 'FILL' 1;">local_shipping</span>
+</div>
+<div>
+<span class="font-headline font-bold text-lg block">Cash on Delivery (COD)</span>
+<span class="font-body text-sm text-on-surface-variant">Pay at your doorstep</span>
+</div>
+</div>
+<input class="w-6 h-6 text-primary border-outline focus:ring-primary group-active:scale-90 transition-transform" name="payment_method" type="radio" value="cod"/>
+</label>
+</div>
+</div>
+<!-- Trust Badges -->
+<div class="flex flex-col items-center gap-6 py-4">
+<div class="flex gap-8">
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-[#803d0a] text-3xl" data-icon="verified_user">verified_user</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter text-on-surface-variant">100% Secure</span>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-[#803d0a] text-3xl" data-icon="encrypted">encrypted</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter text-on-surface-variant">Encrypted</span>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-[#803d0a] text-3xl" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter text-on-surface-variant">PCI DSS</span>
+</div>
+</div>
+<p class="text-xs text-on-surface-variant/60 font-medium text-center max-w-xs leading-relaxed">
+                Your payment is handled securely. We do not store any sensitive UPI or banking credentials on our servers.
+            </p>
+</div>
+</main>
+<!-- Fixed Action Bar (Simulating Desktop & Mobile Consistency) -->
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-[#fafaf5]/70 backdrop-blur-xl border-t border-[#dac1b8]/15 md:relative md:bg-transparent md:border-none md:p-0 md:max-w-2xl md:mx-auto md:mb-12">
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold py-4 rounded-full shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+<span>Pay Now</span>
+<span class="material-symbols-outlined text-xl" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<!-- Hidden Desktop Shell Nav (as per guidelines for top-level pages, though this is checkout so shell is suppressed) -->
+<!-- But if it were a top level destination, it would look like this: -->
+<!-- <nav class="hidden md:flex fixed top-0 left-0 h-full w-20 flex-col items-center py-8 bg-surface-container ..."> -->
+</body></html>

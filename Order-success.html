@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Confirmed - Chakki Wala</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-on-surface": "#f1f1ec",
+                        "surface-variant": "#e3e3de",
+                        "surface-bright": "#fafaf5",
+                        "background": "#fafaf5",
+                        "tertiary": "#8c3220",
+                        "surface-container-high": "#e8e8e3",
+                        "on-background": "#1a1c19",
+                        "inverse-surface": "#2f312e",
+                        "on-tertiary-container": "#ffe1da",
+                        "on-secondary-fixed-variant": "#544525",
+                        "inverse-primary": "#ffb68c",
+                        "tertiary-container": "#ab4935",
+                        "primary-fixed-dim": "#ffb68c",
+                        "secondary-container": "#f4ddb2",
+                        "on-tertiary-fixed": "#3e0500",
+                        "on-secondary-fixed": "#251a01",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-container-highest": "#e3e3de",
+                        "surface-container": "#eeeee9",
+                        "surface": "#fafaf5",
+                        "on-surface": "#1a1c19",
+                        "outline-variant": "#dac1b8",
+                        "on-secondary-container": "#71613e",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#321200",
+                        "primary": "#803d0a",
+                        "secondary": "#6d5c3a",
+                        "primary-container": "#9e5421",
+                        "on-primary-fixed-variant": "#753401",
+                        "secondary-fixed": "#f7e0b5",
+                        "primary-fixed": "#ffdbc9",
+                        "on-error": "#ffffff",
+                        "surface-container-low": "#f4f4ef",
+                        "on-tertiary-fixed-variant": "#802918",
+                        "tertiary-fixed-dim": "#ffb4a5",
+                        "secondary-fixed-dim": "#dac49b",
+                        "tertiary-fixed": "#ffdad3",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#934b19",
+                        "surface-dim": "#dadad5",
+                        "on-surface-variant": "#54433c",
+                        "on-primary-container": "#ffe1d2",
+                        "error": "#ba1a1a",
+                        "outline": "#87736b",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+body {
+    font-family: "Manrope", sans-serif;
+    -webkit-font-smoothing: antialiased
+    }
+h1, h2, h3, .font-headline {
+    font-family: "Plus Jakarta Sans", sans-serif
+    }
+.grain-texture {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuB1moiJaAJDITfErRi64KRhERlfsQNDwKvJepwwx5pseIYSoctJGAhWsuazjR42Kvs5uiN-NFV65MS6o6JnIFjIyEiH6f9P39OgYPTnv-G0LL5pTPp-2GkpgQni8DCd-mhp3-boBCQEldRnbE9Zwa_ltx0geGSy6OSCKK6jfF15coZvu82m0mqvIPqn3DW-k74BUlKwmgUUyHRx9gU0Dk8fTbZFlaSc6bEDcVYOGgfKD0D14i0TU-pP0812cdB2BnnybHQ_Knls4gE);
+    opacity: 0.03;
+    pointer-events: none
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-24">
+<div class="fixed inset-0 grain-texture z-0"></div>
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fafaf5]/70 dark:bg-stone-900/70 backdrop-blur-md flex items-center justify-between px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<button class="text-[#803d0a] dark:text-[#ffdbc9] hover:bg-[#eeeee9] dark:hover:bg-stone-800 transition-colors active:scale-95 duration-200 p-2 rounded-full">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold tracking-tight text-xl text-[#803d0a] dark:text-[#ffdbc9]">Order Confirmed</h1>
+</div>
+</header>
+<main class="relative z-10 pt-20 px-6 max-w-2xl mx-auto">
+<!-- Section 1: Success Illustration -->
+<section class="flex flex-col items-center justify-center py-10 text-center">
+<div class="relative mb-6">
+<div class="absolute inset-0 bg-primary-fixed rounded-full blur-2xl opacity-30"></div>
+<div class="relative w-32 h-32 bg-secondary-container rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-6xl text-primary" style="font-variation-settings: 'FILL' 1;">grass</span>
+</div>
+<div class="absolute -bottom-2 -right-2 bg-primary text-on-primary w-10 h-10 rounded-full flex items-center justify-center border-4 border-background">
+<span class="material-symbols-outlined text-xl">check</span>
+</div>
+</div>
+<h2 class="text-3xl font-headline font-extrabold tracking-tight text-primary mb-2">Thank You!</h2>
+<p class="text-on-surface-variant font-medium mb-1">Your artisanal grains are on their way.</p>
+<div class="inline-block px-4 py-1.5 bg-surface-container-high rounded-full">
+<span class="text-sm font-bold tracking-widest text-on-surface-variant">#CKW-987654</span>
+</div>
+</section>
+<!-- Section 2: Order Recap Card (Editorial Style) -->
+<section class="space-y-6 mb-10">
+<div class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-[0_4px_20px_rgba(50,18,0,0.04)]">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-headline font-bold text-xl text-on-surface">Order Recap</h3>
+<span class="material-symbols-outlined text-on-surface-variant">receipt_long</span>
+</div>
+<div class="space-y-6">
+<!-- Items -->
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 bg-surface-container-low rounded-xl flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Bag of organic wheat flour" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAysppAVf-Zj8l6Cyp_jd9ny8SOtanqktW4plR4DEzz57sSG_BKyJyuhDdxAO-DMeiea6OCbAiuTsNYqM5pJ7QwGDcZmV20O8Vd1AFO33InhJtmYGzc7HQbiAe80jAvSg5ZsAeNmEW-hgryPGw99nDLfCG1pry8KvAdjV0xp8abKUrEqBzTpNmX3oqvX9aIA-IMyLHi_SkyKVh3rl3fISI1bZNviV5Nhm9-rEJ062UadV3U4mVva2K0jr7FhuM-fEC_Ry-fzRcvJMg"/>
+</div>
+<div class="flex-1">
+<p class="font-headline font-bold text-on-surface">5kg Sharbati Atta</p>
+<p class="text-sm text-on-surface-variant">Pure stone-ground wheat</p>
+</div>
+<p class="font-bold text-primary">₹425</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 bg-surface-container-low rounded-xl flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Bowl of chickpea flour" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATc1duxEY9zVdk7GaX16hel2C_jYJOkiiTLC_u1oyyUOAWS9oZLy0lhI72Tyaeh9GtC3ENeouXrMbQKEQXFMXDEGoy7seDEG7VFujoD_3c-V8DXDAgkERuV-VrLNxWaKHMtqX8Fy0qVI7qBJdxxRJSG13JxYWqyHMCuko-q0-DnEy3IxZ_a7pVoEdQt1Xg8WfzWR7-wv8hLWA4GzKckfGabFJDroZAslzpbRt7Rw6ElDBw9VeOh8ddBu3CagPtjMFjc_b5V6h98Tg"/>
+</div>
+<div class="flex-1">
+<p class="font-headline font-bold text-on-surface">1kg Besan</p>
+<p class="text-sm text-on-surface-variant">High-protein Chana Dal</p>
+</div>
+<p class="font-bold text-primary">₹140</p>
+</div>
+</div>
+<div class="h-px bg-surface-variant/30 w-full"></div>
+<!-- Delivery Info -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="flex gap-3">
+<div class="bg-surface-container-high w-10 h-10 rounded-full flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-xl">location_on</span>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Delivery Address</p>
+<p class="text-sm text-on-surface font-medium leading-relaxed">
+                                    House 42, Green Meadows,<br/>Sector 15, Gurgaon, HR
+                                </p>
+</div>
+</div>
+<div class="flex gap-3">
+<div class="bg-surface-container-high w-10 h-10 rounded-full flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-xl">schedule</span>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Selected Slot</p>
+<p class="text-sm text-on-surface font-medium leading-relaxed">
+                                    Tomorrow,<br/>8:00 AM - 11:00 AM
+                                </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 3: WhatsApp Confirmation -->
+<div class="bg-secondary-container/40 rounded-3xl p-6 flex gap-4 items-start">
+<div class="bg-white p-2 rounded-2xl shadow-sm">
+<span class="material-symbols-outlined text-green-700" style="font-variation-settings: 'FILL' 1;">chat</span>
+</div>
+<div>
+<h4 class="font-headline font-bold text-on-secondary-container mb-1">WhatsApp Confirmation</h4>
+<p class="text-sm text-on-secondary-container leading-relaxed">
+                        Order details and tracking link sent to <span class="font-bold">+91 98765 43210</span> via WhatsApp.
+                    </p>
+</div>
+</div>
+</section>
+<!-- Actions -->
+<div class="space-y-4 mt-8 pb-12">
+<button class="w-full h-14 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-full font-headline font-bold text-lg shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+<span>Track Order</span>
+<span class="material-symbols-outlined">local_shipping</span>
+</button>
+<button class="w-full py-4 text-primary font-headline font-bold hover:bg-primary-fixed/30 rounded-full transition-colors active:scale-95">
+                Back to Home
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#fafaf5]/70 dark:bg-stone-900/70 backdrop-blur-md z-50 rounded-t-[1.5rem] shadow-[0_-4px_20px_rgba(50,18,0,0.04)]">
+<div class="flex flex-col items-center justify-center text-[#54433c] dark:text-[#dac1b8] px-4 py-1.5 hover:opacity-80 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined">storefront</span>
+<span class="font-['Manrope'] text-[10px] font-semibold">Shop</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#f4ddb2] dark:bg-[#71613e] text-[#71613e] dark:text-[#f4ddb2] rounded-2xl px-4 py-1.5 active:scale-90 duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="font-['Manrope'] text-[10px] font-semibold">Orders</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#54433c] dark:text-[#dac1b8] px-4 py-1.5 hover:opacity-80 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined">grass</span>
+<span class="font-['Manrope'] text-[10px] font-semibold">Grain</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#54433c] dark:text-[#dac1b8] px-4 py-1.5 hover:opacity-80 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Manrope'] text-[10px] font-semibold">Profile</span>
+</div>
+</nav>
+</body></html>

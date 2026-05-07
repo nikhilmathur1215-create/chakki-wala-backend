@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "secondary-fixed": "#f7e0b5",
+                    "surface-bright": "#fafaf5",
+                    "on-secondary-fixed-variant": "#544525",
+                    "error": "#ba1a1a",
+                    "surface-variant": "#e3e3de",
+                    "inverse-primary": "#ffb68c",
+                    "primary-fixed": "#ffdbc9",
+                    "on-tertiary-container": "#ffe1da",
+                    "on-surface-variant": "#54433c",
+                    "surface-container-low": "#f4f4ef",
+                    "primary-container": "#9e5421",
+                    "tertiary-fixed": "#ffdad3",
+                    "background": "#fafaf5",
+                    "surface-tint": "#934b19",
+                    "on-primary-fixed-variant": "#753401",
+                    "surface-dim": "#dadad5",
+                    "on-secondary-container": "#71613e",
+                    "on-tertiary-fixed-variant": "#802918",
+                    "secondary": "#6d5c3a",
+                    "outline-variant": "#dac1b8",
+                    "on-secondary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "surface-container": "#eeeee9",
+                    "outline": "#87736b",
+                    "on-secondary-fixed": "#251a01",
+                    "on-error-container": "#93000a",
+                    "on-background": "#1a1c19",
+                    "primary": "#803d0a",
+                    "on-tertiary-fixed": "#3e0500",
+                    "surface-container-high": "#e8e8e3",
+                    "primary-fixed-dim": "#ffb68c",
+                    "tertiary": "#8c3220",
+                    "surface-container-highest": "#e3e3de",
+                    "surface": "#fafaf5",
+                    "on-primary-container": "#ffe1d2",
+                    "on-tertiary": "#ffffff",
+                    "inverse-surface": "#2f312e",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed": "#321200",
+                    "secondary-container": "#f4ddb2",
+                    "inverse-on-surface": "#f1f1ec",
+                    "tertiary-container": "#ab4935",
+                    "on-error": "#ffffff",
+                    "on-surface": "#1a1c19",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-fixed-dim": "#dac49b",
+                    "tertiary-fixed-dim": "#ffb4a5"
+                },
+                fontFamily: {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+                },
+                borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1.5rem", "full": "9999px"},
+            },
+        },
+    }
+</script>
+<style>
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    input:focus, textarea:focus {
+        outline: none;
+        border-bottom-width: 2px !important;
+        border-bottom-color: #803d0a !important;
+    }
+    .toast-notification {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1a1c19;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        font-family: 'Manrope', sans-serif;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .mobile-disabled {
+        background-color: #f4f4ef !important;
+        color: #87736b !important;
+        cursor: not-allowed;
+    }
+    .loading-spinner {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+</head>
+<body class="bg-background font-body text-on-surface min-h-screen flex flex-col">
+
+<div class="toast-notification"></div>
+
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fafaf5]/70 dark:bg-[#1c1c1a]/70 backdrop-blur-md flex items-center justify-between px-4 h-16 shadow-sm opacity-95">
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-[#f4f4ef] transition-colors active:scale-95 duration-200" onclick="goBack()">
+<span class="material-symbols-outlined text-[#803d0a]">arrow_back</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold text-lg tracking-tight text-[#803d0a]">Add Delivery Address</h1>
+</div>
+</header>
+
+<main class="flex-grow pt-20 pb-32 max-w-md mx-auto w-full px-4">
+<!-- Info Banner -->
+<div class="mb-6 bg-primary/5 rounded-xl p-4 border border-primary/20">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">info</span>
+<div>
+<p class="text-sm font-semibold text-primary">First Time Adding Address?</p>
+<p class="text-xs text-on-surface-variant">This will be your default delivery address. Your name will be saved as profile name.</p>
+</div>
+</div>
+</div>
+
+<!-- Use Current Location Button -->
+<button class="w-full mb-8 h-14 bg-primary/10 border-2 border-primary border-dashed rounded-xl flex items-center justify-center gap-3 text-primary font-bold hover:bg-primary/20 transition-all active:scale-[0.98]" onclick="useCurrentLocation()">
+<span class="material-symbols-outlined">gps_fixed</span>
+Use My Current Location
+</button>
+
+<!-- Form Container -->
+<div class="space-y-8">
+<div class="flex items-center justify-between">
+<h2 class="font-headline font-extrabold text-2xl text-on-surface-variant leading-tight">Add New Address</h2>
+<span class="text-xs text-primary bg-primary/10 px-2 py-1 rounded-full">Default Address</span>
+</div>
+
+<form id="addressForm" class="space-y-5" onsubmit="saveAddress(event)">
+<!-- Recipient Name (This becomes profile name) -->
+<div class="space-y-1">
+<label class="text-[10px] font-bold uppercase tracking-widest text-outline ml-1">Full Name *</label>
+<input class="w-full h-14 px-4 bg-surface-container-low border-none rounded-xl transition-all font-medium text-on-surface placeholder:text-outline/40 shadow-sm focus:ring-1 focus:ring-primary/20" placeholder="e.g. Rahul Sharma" type="text" id="recipientName" required/>
+<p class="text-xs text-on-surface-variant mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">badge</span>
+This name will be saved as your profile name
+</p>
+</div>
+
+<!-- Mobile Number - Pre-filled with Login Mobile (Disabled) -->
+<div class="space-y-1">
+<label class="text-[10px] font-bold uppercase tracking-widest text-outline ml-1">Mobile Number *</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-primary text-sm border-r border-outline-variant pr-3">+91</span>
+<input class="w-full h-14 pl-16 pr-4 bg-surface-container-low border-none rounded-xl transition-all font-medium text-on-surface placeholder:text-outline/40 shadow-sm mobile-disabled" placeholder="98765 43210" type="tel" id="mobileNumber" readonly disabled/>
+</div>
+<p class="text-xs text-on-surface-variant mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">verified</span>
+Using your registered mobile number
+</p>
+</div>
+
+<!-- House / Flat Number -->
+<div class="space-y-1">
+<label class="text-[10px] font-bold uppercase tracking-widest text-outline ml-1">House / Flat / Block No. *</label>
+<input class="w-full h-14 px-4 bg-surface-container-low border-none rounded-xl transition-all font-medium text-on-surface placeholder:text-outline/40 shadow-sm focus:ring-1 focus:ring-primary/20" placeholder="B-402, Sunshine Apartments" type="text" id="houseNo" required/>
+</div>
+
+<!-- Street / Area Name -->
+<div class="space-y-1">
+<label class="text-[10px] font-bold uppercase tracking-widest text-outline ml-1">Street / Area Name *</label>
+<input class="w-full h-14 px-4 bg-surface-container-low border-none rounded-xl transition-all font-medium text-on-surface placeholder:text-outline/40 shadow-sm focus:ring-1 focus:ring-primary/20" placeholder="Linking Road, Bandra West" type="text" id="streetArea" required/>
+</div>
+
+<!-- Landmark -->
+<div class="space-y-1">
+<label class="text-[10px] font-bold uppercase tracking-widest text-outline ml-1">Landmark (Optional)</label>
+<input class="w-full h-14 px-4 bg-surface-container-low border-none rounded-xl transition-all font-medium text-on-surface placeholder:text-outline/40 shadow-sm focus:ring-1 focus:ring-primary/20" placeholder="Near Ganesh Temple" type="text" id="landmark"/>
+</div>
+
+<!-- Pincode & City Row -->
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1">
+<label class="text-[10px] font-bold uppercase tracking-widest text-outline ml-1">Pincode *</label>
+<input class="w-full h-14 px-4 bg-surface-container-low border-none rounded-xl transition-all font-medium text-on-surface placeholder:text-outline/40 shadow-sm focus:ring-1 focus:ring-primary/20" placeholder="400050" type="number" id="pincode" required/>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] font-bold uppercase tracking-widest text-outline ml-1">City *</label>
+<input class="w-full h-14 px-4 bg-surface-container-low border-none rounded-xl transition-all font-medium text-on-surface placeholder:text-outline/40 shadow-sm focus:ring-1 focus:ring-primary/20" placeholder="Mumbai" type="text" id="city" required/>
+</div>
+</div>
+
+<!-- Delivery Instructions -->
+<div class="space-y-1">
+<label class="text-[10px] font-bold uppercase tracking-widest text-outline ml-1">Delivery Instructions</label>
+<textarea class="w-full p-4 bg-surface-container-low border-none rounded-xl transition-all font-medium text-on-surface placeholder:text-outline/40 shadow-sm focus:ring-1 focus:ring-primary/20 resize-none" placeholder="Leave at gate, ring doorbell twice..." rows="2" id="instructions"></textarea>
+</div>
+</form>
+</div>
+
+<!-- Address Labels Section -->
+<div class="mt-8 mb-4">
+<p class="text-[10px] font-bold uppercase tracking-widest text-outline mb-4 ml-1">Save address as</p>
+<div class="flex flex-wrap gap-3">
+<button type="button" class="address-label-btn flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary font-bold text-sm shadow-md" data-label="Home" onclick="selectLabel('Home')">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">home</span>
+Home
+</button>
+<button type="button" class="address-label-btn flex items-center gap-2 px-5 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-bold text-sm border border-outline-variant/20 hover:bg-secondary-container/30 transition-colors" data-label="Work" onclick="selectLabel('Work')">
+<span class="material-symbols-outlined text-lg">work</span>
+Work
+</button>
+<button type="button" class="address-label-btn flex items-center gap-2 px-5 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-bold text-sm border border-outline-variant/20 hover:bg-secondary-container/30 transition-colors" data-label="Other" onclick="selectLabel('Other')">
+<span class="material-symbols-outlined text-lg">favorite</span>
+Other
+</button>
+</div>
+</div>
+</main>
+
+<!-- Fixed Bottom Action Bar -->
+<div class="fixed bottom-0 left-0 w-full bg-surface/90 backdrop-blur-xl p-4 pb-8 flex justify-center z-50 border-t border-outline-variant/10">
+<button class="w-full max-w-md h-14 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-xl font-headline font-bold text-lg shadow-xl shadow-primary/20 active:scale-95 transition-all duration-150 flex items-center justify-center gap-2" id="saveAddressBtn">
+<span>Save as Default Address</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+
+<script>
+// ==================== CONFIGURATION ====================
+const API_BASE_URL = 'http://localhost:3000/api';
+let currentSessionId = localStorage.getItem('sessionId');
+let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+let selectedLabel = 'Home';
+
+// ==================== HELPER FUNCTIONS ====================
+function showToast(message, isError = false) {
+    let toast = document.querySelector('.toast-notification');
+    toast.textContent = message;
+    toast.style.background = isError ? '#ba1a1a' : '#2e7d32';
+    toast.style.opacity = '1';
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, 3000);
+}
+
+function goBack() {
+    window.location.href = 'Mycart.html';
+}
+
+function selectLabel(label) {
+    selectedLabel = label;
+    document.querySelectorAll('.address-label-btn').forEach(btn => {
+        if (btn.dataset.label === label) {
+            btn.classList.remove('bg-surface-container-high', 'text-on-surface-variant', 'border');
+            btn.classList.add('bg-primary', 'text-on-primary', 'shadow-md');
+        } else {
+            btn.classList.remove('bg-primary', 'text-on-primary', 'shadow-md');
+            btn.classList.add('bg-surface-container-high', 'text-on-surface-variant', 'border');
+        }
+    });
+}
+
+function getFullAddress() {
+    const houseNo = document.getElementById('houseNo').value;
+    const streetArea = document.getElementById('streetArea').value;
+    const landmark = document.getElementById('landmark').value;
+    const city = document.getElementById('city').value;
+    const pincode = document.getElementById('pincode').value;
+    
+    let address = `${houseNo}, ${streetArea}`;
+    if (landmark) address += `, near ${landmark}`;
+    address += `, ${city} - ${pincode}`;
+    return address;
+}
+
+// Load login mobile number
+function loadLoginMobile() {
+    if (currentUser && currentUser.mobile) {
+        document.getElementById('mobileNumber').value = currentUser.mobile;
+    } else {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.mobile) {
+            document.getElementById('mobileNumber').value = user.mobile;
+        }
+    }
+}
+
+// Update profile name in localStorage and backend
+async function updateProfileName(name) {
+    if (!currentSessionId) return;
+    
+    // Update in localStorage
+    if (currentUser) {
+        currentUser.name = name;
+        localStorage.setItem('user', JSON.stringify(currentUser));
+    }
+    
+    // Update in backend (optional - can be implemented later)
+    try {
+        await fetch(`${API_BASE_URL}/profile/update`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId: currentSessionId, name: name })
+        });
+    } catch (error) {
+        console.error('Error updating profile name:', error);
+    }
+}
+
+// Save address (first address becomes default)
+async function saveAddress(event) {
+    event.preventDefault();
+    
+    if (!currentSessionId) {
+        showToast('Please login first', true);
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1000);
+        return;
+    }
+    
+    // Validate form
+    const recipientName = document.getElementById('recipientName').value;
+    const houseNo = document.getElementById('houseNo').value;
+    const streetArea = document.getElementById('streetArea').value;
+    const city = document.getElementById('city').value;
+    const pincode = document.getElementById('pincode').value;
+    
+    if (!recipientName || !houseNo || !streetArea || !city || !pincode) {
+        showToast('Please fill all required fields', true);
+        return;
+    }
+    
+    if (!/^\d{6}$/.test(pincode)) {
+        showToast('Please enter valid 6-digit pincode', true);
+        return;
+    }
+    
+    const fullAddress = getFullAddress();
+    const mobileNumber = document.getElementById('mobileNumber').value;
+    
+    const addressData = {
+        sessionId: currentSessionId,
+        address: fullAddress,
+        label: selectedLabel,
+        isDefault: true,
+        recipientName: recipientName,
+        mobile: mobileNumber,
+        houseNo: houseNo,
+        streetArea: streetArea,
+        landmark: document.getElementById('landmark').value,
+        city: city,
+        pincode: pincode,
+        instructions: document.getElementById('instructions').value
+    };
+    
+    const saveBtn = document.getElementById('saveAddressBtn');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="loading-spinner"></span> Saving...';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/address/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(addressData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update profile name
+            await updateProfileName(recipientName);
+            
+            // Save to localStorage
+            localStorage.setItem('selectedAddress', fullAddress);
+            localStorage.setItem('selectedAddressLabel', selectedLabel);
+            localStorage.setItem('hasSavedAddress', 'true');
+            localStorage.setItem('userName', recipientName);
+            
+            showToast('✓ Default address saved successfully!');
+            
+            setTimeout(() => {
+                window.location.href = 'Mycart.html';
+            }, 1500);
+        } else {
+            showToast('❌ Failed to save address', true);
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = 'Save as Default Address <span class="material-symbols-outlined">arrow_forward</span>';
+        }
+    } catch (error) {
+        console.error('Error saving address:', error);
+        // Fallback to localStorage
+        localStorage.setItem('selectedAddress', fullAddress);
+        localStorage.setItem('selectedAddressLabel', selectedLabel);
+        localStorage.setItem('hasSavedAddress', 'true');
+        localStorage.setItem('userName', recipientName);
+        showToast('✓ Address saved locally!');
+        
+        setTimeout(() => {
+            window.location.href = 'Mycart.html';
+        }, 1500);
+    }
+}
+
+// Use current location - fetch address and pre-fill form
+function useCurrentLocation() {
+    if (!navigator.geolocation) {
+        showToast('Geolocation is not supported', true);
+        return;
+    }
+    
+    showToast('Getting your location...');
+    
+    navigator.geolocation.getCurrentPosition(async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        
+        showToast('Fetching address details...');
+        
+        const address = await reverseGeocode(lat, lng);
+        
+        if (address) {
+            // Pre-fill form fields
+            if (address.houseNo) document.getElementById('houseNo').value = address.houseNo;
+            if (address.street) document.getElementById('streetArea').value = address.street;
+            if (address.city) document.getElementById('city').value = address.city;
+            if (address.pincode) document.getElementById('pincode').value = address.pincode;
+            if (address.landmark) document.getElementById('landmark').value = address.landmark;
+            
+            showToast('✓ Location detected! Please review and save.');
+        } else {
+            showToast('Could not get address details. Please enter manually.', true);
+        }
+    }, (error) => {
+        console.error('Geolocation error:', error);
+        let errorMsg = 'Unable to get location. ';
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                errorMsg += 'Please enable location permissions.';
+                break;
+            case error.POSITION_UNAVAILABLE:
+                errorMsg += 'Location information unavailable.';
+                break;
+            case error.TIMEOUT:
+                errorMsg += 'Location request timed out.';
+                break;
+        }
+        showToast(errorMsg, true);
+    });
+}
+
+async function reverseGeocode(lat, lng) {
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+        const data = await response.json();
+        
+        if (data && data.address) {
+            const addr = data.address;
+            return {
+                houseNo: addr.house_number || '',
+                street: addr.road || addr.pedestrian || addr.footway || '',
+                city: addr.city || addr.town || addr.village || addr.municipality || '',
+                pincode: addr.postcode || '',
+                landmark: addr.suburb || addr.neighbourhood || ''
+            };
+        }
+        return null;
+    } catch (error) {
+        console.error('Reverse geocoding error:', error);
+        return null;
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    loadLoginMobile();
+    document.getElementById('saveAddressBtn').addEventListener('click', (e) => {
+        document.getElementById('addressForm').dispatchEvent(new Event('submit'));
+    });
+});
+</script>
+</body>
+</html>

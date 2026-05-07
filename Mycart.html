@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Cart - Chakki Wala</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#803d0a",
+                    "surface": "#fafaf5",
+                    "on-surface": "#1a1c19",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#e8e8e3",
+                    "secondary-container": "#f4ddb2",
+                    "on-surface-variant": "#54433c",
+                    "outline-variant": "#dac1b8",
+                    "error": "#ba1a1a",
+                    "success": "#2e7d32",
+                },
+                fontFamily: {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Manrope"],
+                },
+            },
+        },
+    }
+</script>
+<style>
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .toast-notification {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1a1c19;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        font-family: 'Manrope', sans-serif;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .free-delivery-card {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        border-left: 4px solid #2e7d32;
+    }
+    .delivery-fee-free {
+        color: #2e7d32;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen pb-40">
+
+<header class="sticky top-0 z-50 w-full px-6 py-4 flex items-center justify-between bg-[#fafaf5]/70 backdrop-blur-xl">
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container transition-colors active:scale-95" onclick="window.location.href='Index.html'">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="text-2xl font-extrabold text-primary tracking-tighter font-headline">My Cart</h1>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs text-on-surface-variant" id="loginStatus"></span>
+</div>
+</header>
+
+<main class="max-w-2xl mx-auto px-6 pt-8 space-y-8">
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h2 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant font-headline">Items in your cart (<span id="cartItemCount">0</span>)</h2>
+</div>
+<div id="cartItemsContainer" class="space-y-4"></div>
+</section>
+
+<!-- Free Delivery Promotion Card -->
+<section class="free-delivery-card rounded-xl p-5 shadow-sm" id="freeDeliveryCard">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-success">local_shipping</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-semibold text-success uppercase tracking-wider">Free Delivery</p>
+<p class="text-on-surface font-bold text-lg" id="freeDeliveryMessage">Add ₹500 more for free delivery</p>
+<p class="text-xs text-on-surface-variant mt-1">Free delivery on orders above ₹500</p>
+</div>
+<div class="text-right">
+<span class="text-2xl font-black text-success" id="remainingForFree">₹500</span>
+<p class="text-xs text-on-surface-variant">more to go</p>
+</div>
+</div>
+<div class="mt-3">
+<div class="h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div id="freeDeliveryBar" class="h-full bg-success rounded-full transition-all duration-300" style="width: 0%"></div>
+</div>
+</div>
+</section>
+
+<!-- Delivery Slot Section -->
+<section class="bg-secondary-container/30 p-5 rounded-xl">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined">schedule</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-on-secondary-container uppercase tracking-wider">Delivery Estimate</p>
+<p class="text-on-surface font-bold text-lg" id="deliverySlotDisplay">Tomorrow, 8 AM - 10 AM</p>
+</div>
+<button class="ml-auto text-primary font-bold text-sm underline" onclick="checkLoginAndChangeSlot()">Change</button>
+</div>
+</section>
+
+<!-- Delivery Address Section -->
+<section class="bg-secondary-container/30 p-5 rounded-xl">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+<div class="min-w-0 flex-grow">
+<p class="text-sm font-semibold text-on-secondary-container uppercase tracking-wider">Deliver to</p>
+<p class="text-on-surface font-bold text-sm truncate" id="deliveryAddressDisplay">Select address</p>
+</div>
+<button class="ml-auto text-primary font-bold text-sm underline" onclick="checkLoginAndChangeAddress()">Change</button>
+</div>
+</section>
+
+<!-- Bill Details -->
+<section class="space-y-4">
+<h2 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Bill Details</h2>
+<div class="bg-surface-container-high p-6 rounded-xl space-y-4">
+<div class="flex justify-between items-center">
+<span>Subtotal</span>
+<span id="subtotal">₹0</span>
+</div>
+<div class="flex justify-between items-center" id="deliveryFeeRow">
+<span>Delivery Fee</span>
+<span id="deliveryFeeDisplay" class="delivery-fee-free">₹0</span>
+</div>
+<div class="flex justify-between items-center">
+<span>GST (5%)</span>
+<span id="gst">₹0</span>
+</div>
+<div class="h-px bg-outline-variant/20"></div>
+<div class="flex justify-between items-center bg-primary/5 -mx-6 px-6 py-4 rounded-b-xl">
+<span class="text-xl font-extrabold font-headline">Grand Total</span>
+<span class="text-2xl font-black text-primary font-headline" id="grandTotal">₹0</span>
+</div>
+</div>
+</section>
+
+<button class="w-full p-4 flex items-center justify-between bg-surface-container-lowest border border-dashed border-outline-variant rounded-xl group hover:border-primary transition-all">
+<div class="flex items-center gap-3"><span class="material-symbols-outlined text-primary">sell</span><span class="font-bold">Apply Coupon</span></div>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+</main>
+
+<!-- Sticky Bottom CTA -->
+<div class="fixed bottom-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-xl">
+<div class="px-6 py-4 bg-surface-container-lowest shadow-[0_-20px_40px_rgba(50,18,0,0.04)] rounded-t-[2rem]">
+<div class="max-w-2xl mx-auto flex items-center justify-between gap-6">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-primary/60 uppercase tracking-widest">Grand Total</span>
+<div class="flex items-baseline gap-0.5">
+<span class="text-primary font-bold text-sm">₹</span>
+<span class="text-3xl font-black text-primary tracking-tighter font-headline" id="stickyGrandTotal">0</span>
+</div>
+</div>
+<button class="flex-grow bg-primary text-white font-bold py-4 px-8 rounded-full shadow-xl shadow-primary/30 flex items-center justify-center gap-3 active:scale-[0.98] transition-all" id="checkoutBtn">
+<span>Proceed to Checkout</span><span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="w-full flex justify-around items-center px-4 pb-6 pt-3">
+<button class="flex flex-col items-center text-[#54433c] opacity-70" onclick="window.location.href='Index.html'"><span class="material-symbols-outlined">home</span><span class="text-[11px] font-semibold mt-1">Home</span></button>
+<button class="flex flex-col items-center text-[#54433c] opacity-70" onclick="window.location.href='Order_history.html'"><span class="material-symbols-outlined">receipt_long</span><span class="text-[11px] font-semibold mt-1">Orders</span></button>
+<button class="flex flex-col items-center bg-[#f4ddb2] text-[#71613e] rounded-2xl px-5 py-2"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_cart</span><span class="text-[11px] font-semibold mt-1">Cart</span></button>
+<button class="flex flex-col items-center text-[#54433c] opacity-70" onclick="window.location.href='profile.html'"><span class="material-symbols-outlined">person</span><span class="text-[11px] font-semibold mt-1">Profile</span></button>
+</nav>
+</div>
+
+<script>
+// ==================== CONFIGURATION ====================
+const FREE_DELIVERY_THRESHOLD = 500;
+const API_BASE_URL = 'http://localhost:3000/api';
+let currentSessionId = localStorage.getItem('sessionId');
+let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+let cartItems = [];
+let currentSubtotal = 0;
+let isFreeDelivery = false;
+
+// ==================== LOGIN CHECK FUNCTIONS ====================
+function isUserLoggedIn() {
+    return currentSessionId !== null && currentSessionId !== undefined;
+}
+
+function showToast(message, duration = 2000) {
+    let toast = document.querySelector('.toast-notification');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.style.opacity = '1';
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, duration);
+}
+
+function checkLoginAndChangeAddress() {
+    if (isUserLoggedIn()) {
+        window.location.href = 'edit_address.html';
+    } else {
+        localStorage.setItem('redirectAfterLogin', 'edit_address.html');
+        showToast('Please login to change delivery address');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1000);
+    }
+}
+
+function checkLoginAndChangeSlot() {
+    if (isUserLoggedIn()) {
+        window.location.href = 'delivery_slot.html';
+    } else {
+        localStorage.setItem('redirectAfterLogin', 'delivery_slot.html');
+        showToast('Please login to change delivery slot');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1000);
+    }
+}
+
+function checkLoginAndProceedToCheckout() {
+    if (cartItems.length === 0) {
+        showToast('Your cart is empty. Add some products first!');
+        return;
+    }
+    
+    if (isUserLoggedIn()) {
+        const selectedAddress = localStorage.getItem('selectedAddress');
+        if (!selectedAddress) {
+            showToast('Please select a delivery address first');
+            setTimeout(() => {
+                window.location.href = 'edit_address.html';
+            }, 1000);
+            return;
+        }
+        
+        // Store order details
+        const gst = currentSubtotal * 0.05;
+        const deliveryFee = isFreeDelivery ? 0 : 40; // Backend will calculate actual
+        const total = currentSubtotal + gst + deliveryFee;
+        
+        localStorage.setItem('orderSubtotal', currentSubtotal);
+        localStorage.setItem('orderGst', gst);
+        localStorage.setItem('orderDeliveryFee', deliveryFee);
+        localStorage.setItem('orderTotal', total);
+        localStorage.setItem('isFreeDelivery', isFreeDelivery);
+        
+        window.location.href = 'order_summary.html';
+    } else {
+        localStorage.setItem('redirectAfterLogin', 'order_summary.html');
+        showToast('Please login to proceed to checkout');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1000);
+    }
+}
+
+function updateLoginStatusDisplay() {
+    const statusElem = document.getElementById('loginStatus');
+    if (statusElem) {
+        if (isUserLoggedIn() && currentUser) {
+            statusElem.innerHTML = `👋 ${currentUser.name || currentUser.mobile}`;
+        } else {
+            statusElem.innerHTML = '👤 Guest';
+        }
+    }
+}
+
+// ==================== FREE DELIVERY UI FUNCTIONS ====================
+function updateFreeDeliveryUI() {
+    const freeDeliveryMessage = document.getElementById('freeDeliveryMessage');
+    const remainingForFree = document.getElementById('remainingForFree');
+    const freeDeliveryBar = document.getElementById('freeDeliveryBar');
+    const deliveryFeeDisplay = document.getElementById('deliveryFeeDisplay');
+    
+    if (currentSubtotal >= FREE_DELIVERY_THRESHOLD) {
+        // Free delivery achieved
+        freeDeliveryMessage.innerHTML = '🎉 Congratulations! You get FREE delivery!';
+        remainingForFree.innerHTML = 'FREE';
+        freeDeliveryBar.style.width = '100%';
+        isFreeDelivery = true;
+        deliveryFeeDisplay.innerHTML = '₹0';
+        deliveryFeeDisplay.classList.add('delivery-fee-free');
+    } else {
+        // Show how much more needed
+        const remaining = FREE_DELIVERY_THRESHOLD - currentSubtotal;
+        freeDeliveryMessage.innerHTML = `Add ₹${remaining} more for free delivery`;
+        remainingForFree.innerHTML = `₹${remaining}`;
+        const progressPercent = (currentSubtotal / FREE_DELIVERY_THRESHOLD) * 100;
+        freeDeliveryBar.style.width = `${progressPercent}%`;
+        isFreeDelivery = false;
+        deliveryFeeDisplay.innerHTML = '₹0';
+    }
+}
+
+// ==================== CART FUNCTIONS ====================
+async function loadCart() {
+    let localCart = JSON.parse(localStorage.getItem('cart') || '[]');
+    
+    if (isUserLoggedIn()) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/cart/${currentSessionId}`);
+            const data = await response.json();
+            if (data.success && data.cart.length > 0) {
+                cartItems = data.cart;
+                if (localCart.length > 0) {
+                    await syncCarts(localCart);
+                }
+            } else if (localCart.length > 0) {
+                cartItems = localCart;
+                await uploadCartToServer(localCart);
+            } else {
+                cartItems = [];
+            }
+        } catch (error) {
+            console.log('Server error, using localStorage');
+            cartItems = localCart;
+        }
+    } else {
+        cartItems = localCart;
+    }
+    
+    renderCart();
+    calculateSubtotalAndUpdateUI();
+}
+
+async function syncCarts(localCart) {
+    for (const item of localCart) {
+        try {
+            await fetch(`${API_BASE_URL}/cart/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId: currentSessionId, product: item })
+            });
+        } catch (error) {
+            console.error('Sync error:', error);
+        }
+    }
+    localStorage.removeItem('cart');
+    await loadCart();
+}
+
+async function uploadCartToServer(localCart) {
+    for (const item of localCart) {
+        try {
+            await fetch(`${API_BASE_URL}/cart/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId: currentSessionId, product: item })
+            });
+        } catch (error) {
+            console.error('Upload error:', error);
+        }
+    }
+    localStorage.removeItem('cart');
+    await loadCart();
+}
+
+function calculateSubtotalAndUpdateUI() {
+    currentSubtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    updateFreeDeliveryUI();
+    updateTotals();
+}
+
+function renderCart() {
+    const container = document.getElementById('cartItemsContainer');
+    const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    document.getElementById('cartItemCount').innerText = itemCount;
+    
+    if (cartItems.length === 0) {
+        container.innerHTML = '<div class="text-center py-12"><span class="material-symbols-outlined text-6xl text-outline">shopping_cart</span><p class="mt-4 text-on-surface-variant">Your cart is empty</p><button class="mt-4 bg-primary text-white px-6 py-2 rounded-full" onclick="window.location.href=\'Index.html\'">Continue Shopping</button></div>';
+        updateTotals();
+        return;
+    }
+    
+    container.innerHTML = cartItems.map((item, index) => `
+        <div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm flex gap-5 relative">
+            <div class="w-24 h-24 rounded-xl bg-surface-container-low flex-shrink-0 flex items-center justify-center">
+                <span class="material-symbols-outlined text-4xl text-primary">bakery_dining</span>
+            </div>
+            <div class="flex-grow">
+                <button class="absolute top-4 right-4 text-on-surface-variant/40 hover:text-error transition-colors" onclick="removeItem('${item.productId}', '${item.weight}')">
+                    <span class="material-symbols-outlined text-lg">delete</span>
+                </button>
+                <h3 class="font-bold text-on-surface">${item.name}</h3>
+                <p class="text-on-surface-variant text-sm">${item.weight}</p>
+                <div class="flex items-center justify-between mt-3">
+                    <span class="text-primary font-extrabold text-xl">₹${item.price}</span>
+                    <div class="flex items-center bg-[#f8f7f6] rounded-full p-1 border border-primary/10">
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full bg-white text-primary hover:bg-primary hover:text-white transition-all" onclick="updateQuantity('${item.productId}', '${item.weight}', ${item.quantity - 1})">
+                            <span class="material-symbols-outlined text-sm">remove</span>
+                        </button>
+                        <span class="w-10 text-center font-bold">${item.quantity}</span>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white shadow-md" onclick="updateQuantity('${item.productId}', '${item.weight}', ${item.quantity + 1})">
+                            <span class="material-symbols-outlined text-sm">add</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    calculateSubtotalAndUpdateUI();
+}
+
+async function updateQuantity(productId, weight, newQuantity) {
+    if (newQuantity < 0) return;
+    
+    if (isUserLoggedIn()) {
+        try {
+            await fetch(`${API_BASE_URL}/cart/update`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId: currentSessionId, productId, weight, newQuantity })
+            });
+            await loadCart();
+        } catch (error) {
+            updateQuantityLocal(productId, weight, newQuantity);
+        }
+    } else {
+        updateQuantityLocal(productId, weight, newQuantity);
+    }
+}
+
+function updateQuantityLocal(productId, weight, newQuantity) {
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const itemIndex = cart.findIndex(item => item.productId === productId && item.weight === weight);
+    if (itemIndex !== -1) {
+        if (newQuantity <= 0) {
+            cart.splice(itemIndex, 1);
+        } else {
+            cart[itemIndex].quantity = newQuantity;
+        }
+    }
+    localStorage.setItem('cart', JSON.stringify(cart));
+    loadCart();
+}
+
+async function removeItem(productId, weight) {
+    if (isUserLoggedIn()) {
+        try {
+            await fetch(`${API_BASE_URL}/cart/remove`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId: currentSessionId, productId, weight })
+            });
+            await loadCart();
+        } catch (error) {
+            removeItemLocal(productId, weight);
+        }
+    } else {
+        removeItemLocal(productId, weight);
+    }
+}
+
+function removeItemLocal(productId, weight) {
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    cart = cart.filter(item => !(item.productId === productId && item.weight === weight));
+    localStorage.setItem('cart', JSON.stringify(cart));
+    loadCart();
+}
+
+function updateTotals() {
+    const subtotal = currentSubtotal;
+    const gst = subtotal * 0.05;
+    const deliveryFee = 0; // Always show ₹0 on frontend
+    const grandTotal = subtotal + gst + deliveryFee;
+    
+    document.getElementById('subtotal').innerHTML = `₹${subtotal.toFixed(2)}`;
+    document.getElementById('deliveryFeeDisplay').innerHTML = `₹${deliveryFee}`;
+    document.getElementById('gst').innerHTML = `₹${gst.toFixed(2)}`;
+    document.getElementById('grandTotal').innerHTML = `₹${grandTotal.toFixed(2)}`;
+    document.getElementById('stickyGrandTotal').innerHTML = grandTotal.toFixed(2);
+    
+    // Update cart icon count
+    const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    localStorage.setItem('cartCount', itemCount);
+}
+
+function loadSavedInfo() {
+    const savedAddress = localStorage.getItem('selectedAddress');
+    const savedAddressLabel = localStorage.getItem('selectedAddressLabel');
+    const savedSlot = localStorage.getItem('selectedSlot');
+    
+    if (savedAddressLabel) {
+        document.getElementById('deliveryAddressDisplay').innerText = savedAddressLabel;
+    } else if (savedAddress) {
+        document.getElementById('deliveryAddressDisplay').innerText = savedAddress.substring(0, 40) + '...';
+    }
+    
+    if (savedSlot) {
+        document.getElementById('deliverySlotDisplay').innerHTML = savedSlot;
+    }
+}
+
+function checkRedirectAfterLogin() {
+    const redirectUrl = localStorage.getItem('redirectAfterLogin');
+    if (redirectUrl && isUserLoggedIn()) {
+        localStorage.removeItem('redirectAfterLogin');
+        window.location.href = redirectUrl;
+    }
+}
+
+// Listen for storage changes
+window.addEventListener('storage', (event) => {
+    if (event.key === 'selectedAddress' || event.key === 'selectedAddressLabel') {
+        loadSavedInfo();
+    }
+});
+
+// ==================== INITIALIZE ====================
+async function init() {
+    checkRedirectAfterLogin();
+    updateLoginStatusDisplay();
+    await loadCart();
+    loadSavedInfo();
+    
+    document.getElementById('checkoutBtn').addEventListener('click', checkLoginAndProceedToCheckout);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

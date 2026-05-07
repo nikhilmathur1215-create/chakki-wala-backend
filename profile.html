@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Profile - Chakki Wala</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#803d0a",
+                    "surface": "#fafaf5",
+                    "on-surface": "#1a1c19",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#e8e8e3",
+                    "secondary-container": "#f4ddb2",
+                    "on-surface-variant": "#54433c",
+                    "outline-variant": "#dac1b8",
+                    "error": "#ba1a1a",
+                    "success": "#2e7d32",
+                },
+                fontFamily: {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Manrope"],
+                },
+            },
+        },
+    }
+</script>
+<style>
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .toast-notification {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1a1c19;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        font-family: 'Manrope', sans-serif;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .profile-avatar {
+        background: linear-gradient(135deg, #f4ddb2 0%, #e8cfa0 100%);
+    }
+    .menu-item {
+        transition: all 0.2s ease;
+    }
+    .menu-item:active {
+        transform: scale(0.98);
+    }
+</style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen pb-40">
+
+<div class="toast-notification"></div>
+
+<!-- Top App Bar -->
+<header class="sticky top-0 z-50 w-full px-6 py-4 flex items-center justify-between bg-[#fafaf5]/70 backdrop-blur-xl shadow-sm">
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container transition-colors active:scale-95" onclick="goBack()">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="text-2xl font-extrabold text-primary tracking-tighter font-headline">My Profile</h1>
+</div>
+</header>
+
+<main class="max-w-md mx-auto px-6 py-8 space-y-8">
+<!-- User Profile Header -->
+<section class="relative">
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-sm flex items-center gap-6">
+<div class="relative">
+<div class="w-20 h-20 rounded-full profile-avatar flex items-center justify-center overflow-hidden shadow-md">
+    <!-- Default Unisex Avatar -->
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="40" fill="#f4ddb2"/>
+        <circle cx="40" cy="32" r="12" fill="#54433c"/>
+        <path d="M28 52C28 52 32 60 40 60C48 60 52 52 52 52" stroke="#54433c" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <circle cx="34" cy="30" r="2" fill="#1a1c19"/>
+        <circle cx="46" cy="30" r="2" fill="#1a1c19"/>
+    </svg>
+</div>
+<button class="absolute -bottom-1 -right-1 bg-primary text-on-primary p-1.5 rounded-full shadow-md active:scale-90 transition-transform" onclick="changeProfilePicture()">
+<span class="material-symbols-outlined text-[16px]">edit</span>
+</button>
+</div>
+<div class="flex-1">
+<h2 class="text-xl font-bold text-on-surface tracking-tight" id="userName">Loading...</h2>
+<p class="text-on-surface-variant text-sm" id="userMobile">Loading...</p>
+</div>
+</div>
+</section>
+
+<!-- Account Settings Section -->
+<section class="space-y-4">
+<h3 class="text-primary font-bold text-sm uppercase tracking-widest px-1">Account Settings</h3>
+<div class="bg-surface-container-low rounded-xl overflow-hidden">
+<!-- Saved Addresses -->
+<div class="menu-item flex items-center justify-between p-4 hover:bg-surface-container-highest transition-colors cursor-pointer" onclick="manageAddresses()">
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-lowest p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+<span class="font-medium">Saved Addresses</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+
+<div class="h-[1px] bg-outline-variant/15 mx-4"></div>
+
+<!-- Order History -->
+<div class="menu-item flex items-center justify-between p-4 hover:bg-surface-container-highest transition-colors cursor-pointer" onclick="viewOrderHistory()">
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-lowest p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined">receipt_long</span>
+</div>
+<span class="font-medium">Order History</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+
+<div class="h-[1px] bg-outline-variant/15 mx-4"></div>
+
+<!-- Notification Preferences -->
+<div class="menu-item flex items-center justify-between p-4 hover:bg-surface-container-highest transition-colors cursor-pointer" onclick="notificationPreferences()">
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-lowest p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined">notifications</span>
+</div>
+<span class="font-medium">Notification Preferences</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+</div>
+</section>
+
+<!-- Customer Care Section -->
+<section class="bg-gradient-to-r from-secondary-container/20 to-primary/5 rounded-xl p-5">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">support_agent</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline font-bold text-on-surface">Customer Care</h3>
+<p class="text-sm text-on-surface-variant">We're here to help 24/7</p>
+</div>
+</div>
+<div class="mt-4 space-y-3">
+<div class="flex items-center justify-between p-3 bg-white/50 rounded-xl">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">call</span>
+<span class="font-medium">Phone Support</span>
+</div>
+<a href="tel:+919876543210" class="text-primary font-bold">+91 98765 43210</a>
+</div>
+<div class="flex items-center justify-between p-3 bg-white/50 rounded-xl">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">mail</span>
+<span class="font-medium">Email Support</span>
+</div>
+<a href="mailto:support@chakkiwala.com" class="text-primary font-bold">support@chakkiwala.com</a>
+</div>
+<div class="flex items-center justify-between p-3 bg-white/50 rounded-xl">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">whatsapp</span>
+<span class="font-medium">WhatsApp</span>
+</div>
+<a href="https://wa.me/919876543210" class="text-primary font-bold">Chat with us</a>
+</div>
+</div>
+</section>
+
+<!-- App Settings Section -
+<section class="space-y-4">
+<h3 class="text-primary font-bold text-sm uppercase tracking-widest px-1">App Settings</h3>
+<div class="bg-surface-container-low rounded-xl overflow-hidden">
+<!-- App Theme (Light/Dark) 
+<div class="menu-item flex items-center justify-between p-4 hover:bg-surface-container-highest transition-colors">
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-lowest p-2 rounded-lg text-secondary">
+<span class="material-symbols-outlined">dark_mode</span>
+</div>
+<span class="font-medium">App Theme</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs text-on-surface-variant" id="themeLabel">Light</span>
+<button class="w-10 h-6 rounded-full bg-primary/20 relative" onclick="toggleTheme()">
+<span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-primary shadow-sm transition-transform duration-200" id="themeToggle"></span>
+</button>
+</div>
+</div>
+
+<div class="h-[1px] bg-outline-variant/15 mx-4"></div>
+
+<!-- Help & Support 
+<div class="menu-item flex items-center justify-between p-4 hover:bg-surface-container-highest transition-colors cursor-pointer" onclick="helpSupport()">
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-lowest p-2 rounded-lg text-secondary">
+<span class="material-symbols-outlined">help_center</span>
+</div>
+<span class="font-medium">Help &amp; Support</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+
+<div class="h-[1px] bg-outline-variant/15 mx-4"></div>
+
+<!-- About 
+<div class="menu-item flex items-center justify-between p-4 hover:bg-surface-container-highest transition-colors cursor-pointer" onclick="showAbout()">
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-lowest p-2 rounded-lg text-secondary">
+<span class="material-symbols-outlined">info</span>
+</div>
+<span class="font-medium">About Chakki Wala</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+
+<div class="h-[1px] bg-outline-variant/15 mx-4"></div> -->
+
+<!-- Logout Button -->
+<div class="menu-item flex items-center justify-between p-4 hover:bg-error/5 transition-colors cursor-pointer" onclick="logout()">
+<div class="flex items-center gap-4 text-error">
+<div class="bg-error/10 p-2 rounded-lg">
+<span class="material-symbols-outlined">logout</span>
+</div>
+<span class="font-bold">Logout</span>
+</div>
+</div>
+</div>
+</section>
+
+<!-- Branding / Footer Info -->
+<footer class="text-center py-8 space-y-2">
+<p class="font-headline font-extrabold text-primary opacity-30 text-2xl tracking-tighter">Chakki Wala</p>
+<p class="text-on-surface-variant text-xs font-medium">Version 2.4.0 • Made with love for the hearth</p>
+<p class="text-on-surface-variant text-xs">© 2024 Chakki Wala. All rights reserved.</p>
+</footer>
+</main>
+
+<!-- Bottom Navigation -->
+<div class="fixed bottom-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-xl">
+<nav class="w-full flex justify-around items-center px-4 pb-6 pt-3">
+<button class="flex flex-col items-center justify-center text-[#54433c] opacity-70 hover:opacity-100 transition-opacity" onclick="window.location.href='Index.html'">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['Manrope'] text-[11px] font-semibold uppercase tracking-wider mt-1">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#54433c] opacity-70 hover:opacity-100 transition-opacity" onclick="window.location.href='Order_history.html'">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-['Manrope'] text-[11px] font-semibold uppercase tracking-wider mt-1">Orders</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#54433c] opacity-70 hover:opacity-100 transition-opacity" onclick="window.location.href='Mycart.html'">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-['Manrope'] text-[11px] font-semibold uppercase tracking-wider mt-1">Cart</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-[#f4ddb2] text-[#71613e] rounded-2xl px-5 py-2 scale-105 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-['Manrope'] text-[11px] font-semibold uppercase tracking-wider mt-1">Profile</span>
+</button>
+</nav>
+</div>
+
+<script>
+// ==================== CONFIGURATION - logout session ====================
+const API_BASE_URL = 'http://localhost:3000/api';
+const SESSION_TIMEOUT_HOURS = 12;
+const SESSION_TIMEOUT_MS = SESSION_TIMEOUT_HOURS * 60 * 60 * 1000;
+
+let currentSessionId = localStorage.getItem('sessionId');
+let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+let sessionTimer = null;
+let lastActivityTime = new Date();
+
+// ==================== HELPER FUNCTIONS ====================
+function showToast(message, isError = false) {
+    let toast = document.querySelector('.toast-notification');
+    toast.textContent = message;
+    toast.style.background = isError ? '#ba1a1a' : '#2e7d32';
+    toast.style.opacity = '1';
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, 3000);
+}
+
+function goBack() {
+    window.location.href = 'Index.html';
+}
+
+// ==================== SESSION MANAGEMENT (SILENT) ====================
+function updateLastActivity() {
+    lastActivityTime = new Date();
+    localStorage.setItem('lastActivityTime', lastActivityTime.toISOString());
+    resetSessionTimer();
+}
+
+function resetSessionTimer() {
+    if (sessionTimer) {
+        clearInterval(sessionTimer);
+    }
+    startSessionTimer();
+}
+
+function startSessionTimer() {
+    if (!localStorage.getItem('sessionStartTime')) {
+        localStorage.setItem('sessionStartTime', new Date().toISOString());
+    }
+    
+    sessionTimer = setInterval(() => {
+        const now = new Date();
+        const lastActivity = new Date(localStorage.getItem('lastActivityTime') || now);
+        const timeSinceLastActivity = now - lastActivity;
+        const timeRemaining = SESSION_TIMEOUT_MS - timeSinceLastActivity;
+        
+        if (timeRemaining <= 0) {
+            clearInterval(sessionTimer);
+            autoLogout();
+        }
+    }, 1000);
+}
+
+function autoLogout() {
+    // Silent auto logout - no notification to user
+    logoutSilently();
+}
+
+function logoutSilently() {
+    // Clear all session data
+    localStorage.removeItem('sessionId');
+    localStorage.removeItem('user');
+    localStorage.removeItem('sessionStartTime');
+    localStorage.removeItem('lastActivityTime');
+    localStorage.removeItem('cart');
+    localStorage.removeItem('selectedAddress');
+    localStorage.removeItem('selectedAddressLabel');
+    localStorage.removeItem('selectedSlot');
+    localStorage.removeItem('selectedSlotData');
+    localStorage.removeItem('cartCount');
+    
+    if (sessionTimer) {
+        clearInterval(sessionTimer);
+    }
+    
+    window.location.href = 'login.html';
+}
+
+// Track user activity (silent)
+function trackActivity() {
+    updateLastActivity();
+}
+
+// Add event listeners for activity tracking
+document.addEventListener('click', trackActivity);
+document.addEventListener('keypress', trackActivity);
+document.addEventListener('scroll', trackActivity);
+document.addEventListener('mousemove', trackActivity);
+
+// ==================== USER PROFILE FUNCTIONS ====================
+function loadUserProfile() {
+    if (!currentSessionId) {
+        showToast('Please login first', true);
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1500);
+        return;
+    }
+    
+    const userNameElem = document.getElementById('userName');
+    const userMobileElem = document.getElementById('userMobile');
+    
+    if (currentUser) {
+        userNameElem.innerText = currentUser.name || 'Valued Customer';
+        userMobileElem.innerText = `+91 ${currentUser.mobile || 'XXXXX XXXXX'}`;
+    } else {
+        const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        userNameElem.innerText = savedUser.name || 'Valued Customer';
+        userMobileElem.innerText = `+91 ${savedUser.mobile || 'XXXXX XXXXX'}`;
+    }
+}
+
+function changeProfilePicture() {
+    showToast('Profile picture feature coming soon!', false);
+}
+
+function manageAddresses() {
+    const hasSavedAddress = localStorage.getItem('hasSavedAddress');
+    if (hasSavedAddress === 'true') {
+        window.location.href = 'edit_address.html';
+    } else {
+        window.location.href = 'add_address.html';
+    }
+}
+
+function viewOrderHistory() {
+    window.location.href = 'Order_history.html';
+}
+
+function notificationPreferences() {
+    showToast('Notification preferences coming soon!', false);
+}
+
+function helpSupport() {
+    window.open('https://wa.me/919876543210', '_blank');
+}
+
+function showAbout() {
+    alert('Chakki Wala\n\nVersion: 2.4.0\n\nFreshly stone-milled grains delivered to your doorstep.\n\nFor feedback: support@chakkiwala.com');
+}
+
+// ==================== THEME TOGGLE ====================
+function toggleTheme() {
+    const html = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+    const themeLabel = document.getElementById('themeLabel');
+    
+    if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        html.classList.add('light');
+        themeLabel.innerText = 'Light';
+        themeToggle.style.transform = 'translateX(0)';
+        localStorage.setItem('theme', 'light');
+    } else {
+        html.classList.remove('light');
+        html.classList.add('dark');
+        themeLabel.innerText = 'Dark';
+        themeToggle.style.transform = 'translateX(16px)';
+        localStorage.setItem('theme', 'dark');
+    }
+}
+
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const html = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+    const themeLabel = document.getElementById('themeLabel');
+    
+    if (savedTheme === 'dark') {
+        html.classList.remove('light');
+        html.classList.add('dark');
+        if (themeLabel) themeLabel.innerText = 'Dark';
+        if (themeToggle) themeToggle.style.transform = 'translateX(16px)';
+    } else {
+        html.classList.remove('dark');
+        html.classList.add('light');
+        if (themeLabel) themeLabel.innerText = 'Light';
+        if (themeToggle) themeToggle.style.transform = 'translateX(0)';
+    }
+}
+
+// ==================== LOGOUT FUNCTION ====================
+async function logout() {
+    const confirmLogout = confirm('Are you sure you want to logout?');
+    
+    if (!confirmLogout) return;
+    
+    try {
+        if (currentSessionId) {
+            await fetch(`${API_BASE_URL}/logout`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId: currentSessionId })
+            });
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
+    }
+    
+    // Clear all session data
+    localStorage.removeItem('sessionId');
+    localStorage.removeItem('user');
+    localStorage.removeItem('sessionStartTime');
+    localStorage.removeItem('lastActivityTime');
+    localStorage.removeItem('cart');
+    localStorage.removeItem('selectedAddress');
+    localStorage.removeItem('selectedAddressLabel');
+    localStorage.removeItem('selectedSlot');
+    localStorage.removeItem('selectedSlotData');
+    localStorage.removeItem('cartCount');
+    
+    if (sessionTimer) {
+        clearInterval(sessionTimer);
+    }
+    
+    showToast('✓ Logged out successfully', false);
+    
+    setTimeout(() => {
+        window.location.href = 'login.html';
+    }, 1000);
+}
+
+// ==================== CHECK LOGIN STATUS ====================
+function checkLoginStatus() {
+    if (!currentSessionId) {
+        showToast('Please login to access profile', true);
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1500);
+        return false;
+    }
+    return true;
+}
+
+// ==================== INITIALIZE ====================
+function init() {
+    if (!checkLoginStatus()) return;
+    
+    // Initialize session tracking (silent)
+    if (!localStorage.getItem('sessionStartTime')) {
+        localStorage.setItem('sessionStartTime', new Date().toISOString());
+    }
+    if (!localStorage.getItem('lastActivityTime')) {
+        localStorage.setItem('lastActivityTime', new Date().toISOString());
+    }
+    
+    lastActivityTime = new Date(localStorage.getItem('lastActivityTime'));
+    updateLastActivity();
+    startSessionTimer();
+    loadUserProfile();
+    loadTheme();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

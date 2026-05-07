@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Login | Chakki Wala</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#803d0a",
+                    "surface": "#fafaf5",
+                    "on-surface": "#1a1c19",
+                    "on-surface-variant": "#54433c",
+                    "surface-container-high": "#e8e8e3",
+                    "outline-variant": "#dac1b8",
+                },
+                fontFamily: {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Manrope"],
+                },
+            },
+        },
+    }
+</script>
+<style>
+    .toast-notification {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1a1c19;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        font-family: 'Manrope', sans-serif;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+</style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col items-center">
+
+<div class="toast-notification"></div>
+
+<header class="fixed top-0 w-full z-50 bg-[#fafaf5]/70 backdrop-blur-md">
+<div class="flex items-center justify-between px-6 h-16 w-full max-w-md mx-auto">
+<button class="text-[#803d0a] active:scale-95 duration-200" onclick="window.location.href='Index.html'">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="w-6"></div>
+</div>
+</header>
+
+<main class="flex-1 w-full max-w-md px-8 pt-32 pb-12 flex flex-col">
+<div class="mb-12">
+<img src="/Users/nikhilmathur/Documents/Home/Images/Mylogo.png" class="h-24 w-24 object-contain" onerror="this.style.display='none'"/>
+<h2 class="text-3xl font-extrabold text-on-surface tracking-tight leading-tight mb-3">
+    Welcome to <br/><span class="text-primary">Chakki Waala</span>
+</h2>
+<p class="text-on-surface-variant font-medium">Enter your mobile number</p>
+</div>
+
+<div class="space-y-8 flex-1">
+<div class="group">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-3 ml-1">Mobile Number</label>
+<div class="relative flex items-center bg-surface-container-high rounded-xl overflow-hidden focus-within:bg-white transition-all duration-300">
+<div class="pl-5 pr-3 text-on-surface font-bold border-r border-outline-variant/30">+91</div>
+<input class="w-full bg-transparent border-none focus:ring-0 py-5 px-4 text-lg font-semibold tracking-wider placeholder:text-outline/50" id="mobileInput" maxlength="10" placeholder="98765 43210" type="tel"/>
+<div class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-500 group-focus-within:w-full"></div>
+</div>
+<p class="mt-4 text-sm text-on-surface-variant/80 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+We'll send a 6-digit OTP for verification.
+</p>
+</div>
+</div>
+
+<div class="mt-auto space-y-6">
+<button class="w-full bg-gradient-to-br from-primary to-[#9e5421] text-white py-5 rounded-full font-bold text-lg shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-3" id="sendOtpBtn">
+    Send OTP
+    <span class="material-symbols-outlined text-xl">arrow_forward</span>
+</button>
+<div class="flex flex-col items-center gap-4 py-4">
+<div class="flex items-center gap-2">
+<div class="h-[1px] w-8 bg-outline-variant/40"></div>
+<span class="text-[10px] uppercase tracking-[0.2em] font-bold text-outline">Harvested with Care</span>
+<div class="h-[1px] w-8 bg-outline-variant/40"></div>
+</div>
+<p class="text-xs text-on-surface-variant/60 text-center px-4 leading-relaxed">
+    By continuing, you agree to our <a class="text-primary font-bold" href="#">Terms of Service</a> & <a class="text-primary font-bold" href="#">Privacy Policy</a>
+</p>
+</div>
+</div>
+</main>
+
+<script>
+const API_BASE_URL = 'http://localhost:3000/api';
+
+function showToast(message) {
+    let toast = document.querySelector('.toast-notification');
+    toast.textContent = message;
+    toast.style.opacity = '1';
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, 2000);
+}
+
+async function sendOTP() {
+    const mobile = document.getElementById('mobileInput').value;
+    
+    // Validation
+    if (!mobile) {
+        showToast('❌ Please enter mobile number');
+        return;
+    }
+    
+    if (!/^\d{10}$/.test(mobile)) {
+        showToast('❌ Please enter valid 10-digit mobile number');
+        return;
+    }
+    
+    const btn = document.getElementById('sendOtpBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="animate-pulse">Sending OTP...</span>';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/send-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mobile })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Store mobile for OTP verification
+            localStorage.setItem('verifyMobile', mobile);
+            
+            // Show OTP in alert for testing
+            if (data.testOtp) {
+                alert(`📱 Test OTP for ${mobile}: ${data.testOtp}\n\nIn production, this will be sent via SMS/WhatsApp.`);
+            }
+            
+            showToast('✅ OTP sent successfully! Redirecting...');
+            
+            // Redirect to OTP page
+            setTimeout(() => {
+                window.location.href = 'verify_otp.html';
+            }, 1000);
+        } else {
+            showToast('❌ ' + data.error);
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('⚠️ Network error. Make sure server is running on port 3000');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+// Event listeners
+document.getElementById('sendOtpBtn').addEventListener('click', sendOTP);
+document.getElementById('mobileInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendOTP();
+});
+</script>
+</body>
+</html>

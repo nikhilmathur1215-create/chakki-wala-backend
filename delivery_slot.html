@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Select Delivery Slot - Chakki Wala</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#803d0a",
+                    "surface": "#fafaf5",
+                    "on-surface": "#1a1c19",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#e8e8e3",
+                    "surface-container-low": "#f4f4ef",
+                    "secondary-container": "#f4ddb2",
+                    "on-surface-variant": "#54433c",
+                    "outline-variant": "#dac1b8",
+                    "success": "#2e7d32",
+                },
+                fontFamily: {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Manrope"],
+                },
+            },
+        },
+    }
+</script>
+<style>
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .toast-notification {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1a1c19;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        font-family: 'Manrope', sans-serif;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .slot-selected {
+        background-color: #803d0a !important;
+        color: white !important;
+        border-color: #803d0a !important;
+    }
+    .date-disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    .slot-disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    .system-suggested {
+        position: relative;
+        overflow: hidden;
+    }
+    .system-suggested::after {
+        content: 'Suggested';
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #2e7d32;
+        color: white;
+        font-size: 8px;
+        font-weight: bold;
+        padding: 2px 6px;
+        border-radius: 20px;
+        letter-spacing: 0.5px;
+    }
+    .recurring-card {
+        transition: all 0.3s ease;
+    }
+    .recurring-card.active {
+        border-color: #803d0a !important;
+        background-color: #803d0a08 !important;
+    }
+</style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+
+<div class="toast-notification"></div>
+
+<nav class="fixed top-0 w-full z-50 bg-[#fafaf5]/70 dark:bg-[#1a1c18]/70 backdrop-blur-xl flex items-center h-16 px-4">
+<div class="flex items-center gap-4 w-full">
+<button class="text-[#803d0a] dark:text-[#ffdbc9] hover:opacity-80 transition-opacity active:scale-95 duration-200" onclick="goBack()">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold text-lg tracking-tight text-[#803d0a] dark:text-[#ffdbc9]">Select Delivery Slot</h1>
+</div>
+</nav>
+
+<main class="pt-20 pb-32 px-4 max-w-2xl mx-auto">
+
+
+<!-- Date Selection -->
+<section class="mb-8">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-headline font-bold text-lg text-on-surface">Select Date</h3>
+<span class="text-primary text-sm font-semibold" id="currentMonth"></span>
+</div>
+<div class="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4" id="dateList"></div>
+<p class="text-xs text-on-surface-variant mt-3 text-center" id="dateNote"></p>
+</section>
+
+<!-- Time Slots -->
+<section class="mb-10">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline font-bold text-lg text-on-surface">Available Slots</h3>
+<div class="flex items-center gap-2 text-on-surface-variant text-sm">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span>All times in IST</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="slotsContainer"></div>
+<p class="text-xs text-on-surface-variant mt-3 text-center" id="slotNote"></p>
+</section>
+
+<!-- Recurring Order Section -->
+<section class="mb-8">
+<div class="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-5 border border-primary/20">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary">schedule</span>
+<h3 class="font-headline font-bold text-lg text-on-surface">Recurring Order</h3>
+<span class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Save 10%</span>
+</div>
+<p class="text-sm text-on-surface-variant mb-4">Never run out of fresh flour! Set up automatic delivery every few days.</p>
+
+<div class="grid grid-cols-2 gap-3">
+<button class="recurring-option p-3 rounded-xl border-2 border-outline-variant/30 bg-white text-left transition-all" data-days="0">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">close</span>
+<span class="font-bold text-on-surface">One Time</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1">Regular one-time delivery</p>
+</button>
+
+<button class="recurring-option p-3 rounded-xl border-2 border-outline-variant/30 bg-white text-left transition-all" data-days="15">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">repeat</span>
+<span class="font-bold text-on-surface">Every 15 Days</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1">Twice a month delivery</p>
+</button>
+
+<button class="recurring-option p-3 rounded-xl border-2 border-outline-variant/30 bg-white text-left transition-all" data-days="30">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">repeat</span>
+<span class="font-bold text-on-surface">Every 30 Days</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1">Monthly subscription</p>
+</button>
+
+<button class="recurring-option p-3 rounded-xl border-2 border-outline-variant/30 bg-white text-left transition-all" data-days="45">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">repeat</span>
+<span class="font-bold text-on-surface">Every 45 Days</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1">6-7 weeks delivery</p>
+</button>
+
+<button class="recurring-option p-3 rounded-xl border-2 border-outline-variant/30 bg-white text-left transition-all" data-days="60">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">repeat</span>
+<span class="font-bold text-on-surface">Every 60 Days</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1">Bi-monthly subscription</p>
+</button>
+
+<button class="recurring-option p-3 rounded-xl border-2 border-outline-variant/30 bg-white text-left transition-all" data-days="90">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">repeat</span>
+<span class="font-bold text-on-surface">Every 90 Days</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1">Quarterly delivery</p>
+</button>
+</div>
+
+<div id="recurringSummary" class="mt-4 text-sm text-primary font-medium hidden">
+✓ Recurring order activated. You'll receive automatic deliveries every <span id="recurringDays">30</span> days.
+</div>
+</div>
+</section>
+
+<!-- Next Delivery Dates Preview (for recurring orders) -->
+<section id="nextDeliveryPreview" class="mb-6 hidden">
+<div class="bg-secondary-container/20 rounded-xl p-4">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary">event_repeat</span>
+<h4 class="font-bold text-on-surface">Upcoming Deliveries</h4>
+</div>
+<div id="deliveryDatesList" class="space-y-2 text-sm"></div>
+<p class="text-xs text-on-surface-variant mt-3 pt-2 border-t border-outline-variant/20">
+You can skip, pause, or cancel anytime from your profile.
+</p>
+</div>
+</section>
+
+<!-- Info Note -->
+<div class="bg-secondary-container/30 rounded-xl p-4 flex gap-3">
+<span class="material-symbols-outlined text-on-secondary-container">info</span>
+<p class="text-sm text-on-secondary-container leading-relaxed">
+    Freshly milled flour takes 4-6 hours to cool before packing. We ensure your delivery slot allows for the best quality grain arrival.<br/>
+    <span class="font-bold mt-1 inline-block">⭐ System suggested slot is highlighted based on your order time.</span>
+</p>
+</div>
+</main>
+
+<!-- Sticky Bottom CTA -->
+<div class="fixed bottom-0 left-0 w-full bg-surface-bright/80 backdrop-blur-md p-4 pb-8 z-40">
+<div class="max-w-2xl mx-auto flex items-center justify-between gap-6">
+<div class="hidden sm:block">
+<p class="text-on-surface-variant text-sm">Selected Slot</p>
+<p class="font-headline font-bold text-primary" id="selectedSlotDisplay">None selected</p>
+</div>
+<button class="flex-grow bg-[#A0522D] text-white font-bold py-4 px-8 rounded-full shadow-xl shadow-[#A0522D] shadow-primary/20 active:scale-95 transition-transform" id="confirmSlotBtn">
+    Confirm Slot
+</button>
+</div>
+</div>
+
+<script>
+// ==================== TIME SLOTS DEFINITION ====================
+const TIME_SLOTS = [
+    { id: 'slot1', name: 'Morning', time: '08:00 AM - 10:00 AM', startHour: 8, endHour: 10, period: 'morning', fee: 0, order: 1 },
+    { id: 'slot2', name: 'Late Morning', time: '10:00 AM - 12:00 PM', startHour: 10, endHour: 12, period: 'morning', fee: 0, order: 2 },
+    { id: 'slot3', name: 'Afternoon', time: '12:00 PM - 02:00 PM', startHour: 12, endHour: 14, period: 'afternoon', fee: 0, order: 3 },
+    { id: 'slot4', name: 'Evening', time: '04:00 PM - 06:00 PM', startHour: 16, endHour: 18, period: 'evening', fee: 0, order: 4 },
+    { id: 'slot5', name: 'Night', time: '06:00 PM - 08:00 PM', startHour: 18, endHour: 20, period: 'night', fee: 0, order: 5 }
+];
+
+// ==================== GLOBAL VARIABLES ====================
+let selectedDate = null;
+let selectedTimeSlot = null;
+let selectedSlotDisplay = '';
+let currentDate = new Date();
+let systemSuggestedDate = null;
+let systemSuggestedSlot = null;
+let recurringDays = 0; // 0 = one time order
+let activeRecurringOption = null;
+
+// ==================== HELPER FUNCTIONS ====================
+function showToast(message, isError = false) {
+    let toast = document.querySelector('.toast-notification');
+    toast.textContent = message;
+    toast.style.background = isError ? '#ba1a1a' : '#2e7d32';
+    toast.style.opacity = '1';
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, 2000);
+}
+
+function goBack() {
+    window.location.href = 'Mycart.html';
+}
+
+// ==================== FIND NEAREST AVAILABLE SLOT ====================
+function findNearestAvailableSlot() {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinutes = now.getMinutes();
+    const currentTimeInMinutes = (currentHour * 60) + currentMinutes;
+    const minProcessingMinutes = 120; // 2 hours minimum processing time
+    
+    let nearestSlot = null;
+    let nearestDate = null;
+    let minTimeDiff = Infinity;
+    
+    for (let i = 0; i < 7; i++) {
+        const checkDate = new Date();
+        checkDate.setDate(currentDate.getDate() + i);
+        checkDate.setHours(0, 0, 0, 0);
+        
+        if (i === 0) {
+            for (const slot of TIME_SLOTS) {
+                const slotStartMinutes = slot.startHour * 60;
+                const timeDiff = slotStartMinutes - (currentTimeInMinutes + minProcessingMinutes);
+                
+                if (timeDiff >= 0 && timeDiff < minTimeDiff) {
+                    minTimeDiff = timeDiff;
+                    nearestSlot = slot;
+                    nearestDate = checkDate;
+                }
+            }
+        } else {
+            if (minTimeDiff === Infinity) {
+                nearestSlot = TIME_SLOTS[0];
+                nearestDate = checkDate;
+                minTimeDiff = 0;
+            }
+        }
+    }
+    
+    return { date: nearestDate, slot: nearestSlot };
+}
+
+// ==================== CHECK IF SLOT IS AVAILABLE ====================
+function isSlotAvailableForDate(slot, date) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    
+    if (checkDate < today) return false;
+    
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinutes = now.getMinutes();
+    const currentTimeInMinutes = (currentHour * 60) + currentMinutes;
+    const minProcessingMinutes = 120;
+    
+    if (checkDate.getTime() === today.getTime()) {
+        const slotStartMinutes = slot.startHour * 60;
+        return (slotStartMinutes >= (currentTimeInMinutes + minProcessingMinutes));
+    }
+    
+    return true;
+}
+
+// ==================== GENERATE DATES ====================
+function getAvailableDates() {
+    const dates = [];
+    const today = new Date();
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        date.setHours(0, 0, 0, 0);
+        
+        dates.push({
+            date: date,
+            dayName: days[date.getDay()],
+            dateNum: date.getDate(),
+            month: date.toLocaleString('default', { month: 'short' }),
+            fullDate: date.toISOString().split('T')[0],
+            isToday: i === 0,
+            isPast: false,
+            timestamp: date.getTime()
+        });
+    }
+    return dates;
+}
+
+// ==================== RENDER DATE BUTTONS ====================
+function renderDates() {
+    const dates = getAvailableDates();
+    const container = document.getElementById('dateList');
+    const currentMonthElem = document.getElementById('currentMonth');
+    const dateNote = document.getElementById('dateNote');
+    
+    currentMonthElem.innerText = dates[0].date.toLocaleString('default', { month: 'long', year: 'numeric' });
+    dateNote.innerHTML = '📅 Only future dates are available for delivery';
+    
+    container.innerHTML = dates.map(date => `
+        <button class="date-btn flex-shrink-0 flex flex-col items-center justify-center w-20 h-24 rounded-xl bg-surface-container-highest text-on-surface-variant hover:bg-secondary-container transition-colors active:scale-95 ${date.isPast ? 'date-disabled' : ''}" 
+                data-date="${date.fullDate}" 
+                data-date-num="${date.dateNum}"
+                data-timestamp="${date.timestamp}"
+                ${date.isPast ? 'disabled' : ''}>
+            <span class="font-label text-xs uppercase tracking-widest">${date.isToday ? 'Today' : date.dayName}</span>
+            <span class="font-headline font-extrabold text-2xl">${date.dateNum}</span>
+            <span class="font-label text-xs">${date.month}</span>
+        </button>
+    `).join('');
+    
+    document.querySelectorAll('.date-btn:not([disabled])').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.date-btn').forEach(b => {
+                b.classList.remove('bg-primary', 'text-on-primary', 'shadow-lg');
+                b.classList.add('bg-surface-container-highest', 'text-on-surface-variant');
+            });
+            btn.classList.remove('bg-surface-container-highest', 'text-on-surface-variant');
+            btn.classList.add('bg-primary', 'text-on-primary', 'shadow-lg');
+            selectedDate = btn.dataset.date;
+            renderTimeSlots();
+            updateNextDeliveryPreview();
+        });
+    });
+}
+
+// ==================== RENDER TIME SLOTS ====================
+function renderTimeSlots() {
+    const container = document.getElementById('slotsContainer');
+    const slotNote = document.getElementById('slotNote');
+    
+    if (!selectedDate) {
+        container.innerHTML = '<div class="col-span-2 text-center py-8 text-on-surface-variant">Please select a date first</div>';
+        return;
+    }
+    
+    const selectedDateObj = new Date(selectedDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const isToday = selectedDateObj.getTime() === today.getTime();
+    
+    const availableSlots = TIME_SLOTS.filter(slot => isSlotAvailableForDate(slot, selectedDateObj));
+    
+    if (availableSlots.length === 0) {
+        container.innerHTML = '<div class="col-span-2 text-center py-8 text-on-surface-variant">⚠️ No slots available for this date. Please select another date.</div>';
+        slotNote.innerHTML = 'All slots for today have passed. Please select a future date.';
+        return;
+    }
+    
+    slotNote.innerHTML = isToday ? '⏰ Slots shown are at least 2 hours from current time' : '📅 All slots available for future dates';
+    
+    let suggestedSlotId = null;
+    if (systemSuggestedDate && systemSuggestedSlot) {
+        const suggestedDateObj = new Date(systemSuggestedDate);
+        if (suggestedDateObj.getTime() === selectedDateObj.getTime()) {
+            suggestedSlotId = systemSuggestedSlot.id;
+        }
+    }
+    
+    container.innerHTML = availableSlots.map(slot => `
+        <button class="slot-btn p-5 rounded-xl bg-surface-container-lowest border border-outline-variant hover:border-primary transition-all text-left active:scale-[0.98] group ${suggestedSlotId === slot.id ? 'system-suggested' : ''}" 
+                data-slot-id="${slot.id}" 
+                data-slot-name="${slot.name}" 
+                data-slot-time="${slot.time}"
+                data-slot-start="${slot.startHour}">
+            <div class="flex justify-between items-start mb-2">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-secondary">${slot.period === 'morning' ? 'wb_twilight' : slot.period === 'afternoon' ? 'sunny' : slot.period === 'evening' ? 'clear_day' : 'bedtime'}</span>
+                    <span class="font-bold text-secondary">${slot.name}</span>
+                </div>
+                <span class="text-xs font-bold uppercase tracking-wider text-primary">FREE</span>
+            </div>
+            <p class="font-headline font-extrabold text-xl text-on-surface group-hover:text-primary transition-colors">${slot.time}</p>
+            ${suggestedSlotId === slot.id ? '<p class="text-xs text-success mt-1 flex items-center gap-1"><span class="material-symbols-outlined text-sm">recommend</span> Suggested based on your order time</p>' : ''}
+        </button>
+    `).join('');
+    
+    document.querySelectorAll('.slot-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.slot-btn').forEach(b => {
+                b.classList.remove('slot-selected', 'bg-primary', 'text-on-primary');
+                b.classList.add('bg-surface-container-lowest', 'text-on-surface');
+            });
+            btn.classList.remove('bg-surface-container-lowest', 'text-on-surface');
+            btn.classList.add('slot-selected', 'bg-primary', 'text-on-primary');
+            
+            selectedTimeSlot = {
+                id: btn.dataset.slotId,
+                name: btn.dataset.slotName,
+                time: btn.dataset.slotTime
+            };
+            
+            const dateObj = new Date(selectedDate);
+            const formattedDate = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            selectedSlotDisplay = `${formattedDate}, ${selectedTimeSlot.time}`;
+            document.getElementById('selectedSlotDisplay').innerText = selectedSlotDisplay;
+            
+            updateNextDeliveryPreview();
+        });
+    });
+}
+
+// ==================== RECURRING ORDER HANDLING ====================
+function setupRecurringOptions() {
+    const options = document.querySelectorAll('.recurring-option');
+    
+    options.forEach(option => {
+        option.addEventListener('click', () => {
+            const days = parseInt(option.dataset.days);
+            
+            options.forEach(opt => {
+                opt.classList.remove('active', 'border-primary', 'bg-primary/5');
+                opt.classList.add('border-outline-variant/30');
+            });
+            
+            if (days === 0) {
+                option.classList.add('active', 'border-primary', 'bg-primary/5');
+                recurringDays = 0;
+                activeRecurringOption = null;
+                document.getElementById('recurringSummary').classList.add('hidden');
+                document.getElementById('nextDeliveryPreview').classList.add('hidden');
+                showToast('One-time order selected', false);
+            } else {
+                option.classList.add('active', 'border-primary', 'bg-primary/5');
+                recurringDays = days;
+                activeRecurringOption = days;
+                document.getElementById('recurringSummary').classList.remove('hidden');
+                document.getElementById('recurringDays').innerText = days;
+                document.getElementById('recurringSummary').classList.add('block');
+                showToast(`Recurring order set for every ${days} days. Save 10% on all deliveries!`, false);
+                updateNextDeliveryPreview();
+            }
+        });
+    });
+    
+    // Set "One Time" as default
+    document.querySelector('.recurring-option[data-days="0"]').click();
+}
+
+// ==================== UPDATE NEXT DELIVERY PREVIEW ====================
+function updateNextDeliveryPreview() {
+    if (recurringDays === 0 || !selectedDate || !selectedTimeSlot) {
+        return;
+    }
+    
+    const previewSection = document.getElementById('nextDeliveryPreview');
+    const deliveryDatesList = document.getElementById('deliveryDatesList');
+    
+    previewSection.classList.remove('hidden');
+    
+    const baseDate = new Date(selectedDate);
+    const slotTime = selectedTimeSlot.time;
+    
+    let deliveries = [];
+    for (let i = 0; i < 4; i++) {
+        const deliveryDate = new Date(baseDate);
+        if (i > 0) {
+            deliveryDate.setDate(baseDate.getDate() + (recurringDays * i));
+        }
+        
+        if (deliveryDate >= new Date()) {
+            const formattedDate = deliveryDate.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric' 
+            });
+            deliveries.push(`
+                <div class="flex items-center justify-between py-2 border-b border-outline-variant/20 last:border-0">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-sm">event</span>
+                        <span class="font-medium">Delivery #${i + 1}</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-sm font-semibold">${formattedDate}</span>
+                        <span class="text-xs text-on-surface-variant block">${slotTime}</span>
+                    </div>
+                </div>
+            `);
+        }
+    }
+    
+    deliveryDatesList.innerHTML = deliveries.join('');
+}
+
+// ==================== SET DEFAULT SELECTION ====================
+function setDefaultSelection() {
+    const nearest = findNearestAvailableSlot();
+    
+    if (nearest.date && nearest.slot) {
+        systemSuggestedDate = nearest.date;
+        systemSuggestedSlot = nearest.slot;
+        
+        const year = nearest.date.getFullYear();
+        const month = String(nearest.date.getMonth() + 1).padStart(2, '0');
+        const day = String(nearest.date.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+        
+        selectedDate = dateStr;
+        selectedTimeSlot = nearest.slot;
+        
+        const formattedDate = nearest.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        selectedSlotDisplay = `${formattedDate}, ${nearest.slot.time}`;
+        document.getElementById('selectedSlotDisplay').innerText = selectedSlotDisplay;
+        
+        setTimeout(() => {
+            const dateButtons = document.querySelectorAll('.date-btn');
+            dateButtons.forEach(btn => {
+                if (btn.dataset.date === dateStr) {
+                    btn.click();
+                }
+            });
+        }, 100);
+    } else {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        selectedDate = `${year}-${month}-${day}`;
+        
+        for (const slot of TIME_SLOTS) {
+            if (isSlotAvailableForDate(slot, today)) {
+                selectedTimeSlot = slot;
+                const formattedDate = today.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                selectedSlotDisplay = `${formattedDate}, ${slot.time}`;
+                document.getElementById('selectedSlotDisplay').innerText = selectedSlotDisplay;
+                break;
+            }
+        }
+        
+        setTimeout(() => {
+            const dateButtons = document.querySelectorAll('.date-btn');
+            dateButtons.forEach(btn => {
+                if (btn.dataset.date === selectedDate) {
+                    btn.click();
+                }
+            });
+        }, 100);
+    }
+}
+
+// ==================== CONFIRM SLOT ====================
+function confirmSlot() {
+    if (!selectedDate) {
+        showToast('Please select a delivery date', true);
+        return;
+    }
+    
+    if (!selectedTimeSlot) {
+        showToast('Please select a delivery time slot', true);
+        return;
+    }
+    
+    const dateObj = new Date(selectedDate);
+    const formattedDate = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const slotDisplay = `${formattedDate}, ${selectedTimeSlot.time}`;
+    
+    // Save to localStorage
+    localStorage.setItem('selectedSlot', slotDisplay);
+    localStorage.setItem('selectedSlotData', JSON.stringify({
+        date: selectedDate,
+        dateFormatted: formattedDate,
+        slot: selectedTimeSlot,
+        display: slotDisplay,
+        recurringDays: recurringDays,
+        isRecurring: recurringDays > 0
+    }));
+    
+    if (recurringDays > 0) {
+        showToast(`✓ Recurring order set! Every ${recurringDays} days. First delivery: ${slotDisplay}`, false);
+    } else {
+        showToast(`✓ Delivery slot set to ${slotDisplay}`, false);
+    }
+    
+    setTimeout(() => {
+        window.location.href = 'Mycart.html';
+    }, 500);
+}
+
+// ==================== INITIALIZE ====================
+function init() {
+    renderDates();
+    setDefaultSelection();
+    setupRecurringOptions();
+    document.getElementById('confirmSlotBtn').addEventListener('click', confirmSlot);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

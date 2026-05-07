@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "inverse-surface": "#2f312e",
+              "surface-bright": "#fafaf5",
+              "surface": "#fafaf5",
+              "on-primary-fixed-variant": "#753401",
+              "outline-variant": "#dac1b8",
+              "tertiary-fixed": "#ffdad3",
+              "on-secondary": "#ffffff",
+              "inverse-on-surface": "#f1f1ec",
+              "surface-container-highest": "#e3e3de",
+              "secondary": "#6d5c3a",
+              "on-surface": "#1a1c19",
+              "primary-fixed": "#ffdbc9",
+              "on-secondary-container": "#71613e",
+              "inverse-primary": "#ffb68c",
+              "secondary-fixed": "#f7e0b5",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary-fixed": "#3e0500",
+              "on-secondary-fixed-variant": "#544525",
+              "background": "#fafaf5",
+              "tertiary-container": "#ab4935",
+              "surface-tint": "#934b19",
+              "error-container": "#ffdad6",
+              "on-error": "#ffffff",
+              "surface-dim": "#dadad5",
+              "primary-container": "#9e5421",
+              "tertiary": "#8c3220",
+              "on-primary-fixed": "#321200",
+              "on-tertiary": "#ffffff",
+              "on-error-container": "#93000a",
+              "on-background": "#1a1c19",
+              "error": "#ba1a1a",
+              "outline": "#87736b",
+              "tertiary-fixed-dim": "#ffb4a5",
+              "on-tertiary-fixed-variant": "#802918",
+              "secondary-fixed-dim": "#dac49b",
+              "surface-container-low": "#f4f4ef",
+              "surface-container": "#eeeee9",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed": "#251a01",
+              "surface-variant": "#e3e3de",
+              "on-primary-container": "#ffe1d2",
+              "surface-container-high": "#e8e8e3",
+              "on-surface-variant": "#54433c",
+              "primary": "#803d0a",
+              "secondary-container": "#f4ddb2",
+              "primary-fixed-dim": "#ffb68c",
+              "on-tertiary-container": "#ffe1da"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .cart-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #803d0a;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .product-card {
+            transition: transform 0.2s ease;
+        }
+        .product-card:active {
+            transform: scale(0.98);
+        }
+        .toast-notification {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1c19;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            font-family: 'Manrope', sans-serif;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .loading-pulse {
+            animation: pulse 1s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fafaf5]/70 dark:bg-stone-900/70 backdrop-blur-xl shadow-[0_20px_20px_rgba(50,18,0,0.04)] flex justify-between items-center h-16 px-4 relative">
+<div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='Index.html'">
+<span class="material-symbols-outlined text-[#803d0a] dark:text-[#ffdbc9]">bakery_dining</span>
+<h1 class="font-['Plus_Jakarta_Sans'] font-extrabold tracking-tight text-2xl text-[#803d0a] dark:text-[#ffdbc9] italic">Chakki Wala</h1>
+</div>
+
+<button class="flex items-center mx-2 flex-1 min-w-0 max-w-[180px] bg-primary/5 dark:bg-primary/20 px-3 py-1.5 rounded-full hover:bg-primary/10 transition-colors group gap-2" onclick="checkLoginAndOpenAddress()">
+<span class="material-symbols-outlined text-primary text-[18px] flex-shrink-0">location_on</span>
+<span class="text-xs font-bold text-primary truncate" id="selectedAddressLabel">Select Address</span>
+<span class="material-symbols-outlined text-primary text-[18px] flex-shrink-0 group-hover:translate-y-0.5 transition-transform">expand_more</span>
+</button>
+
+<div class="absolute top-16 left-1/2 -translate-x-1/2 w-[90%] max-w-sm bg-surface-container-lowest border border-outline-variant rounded-xl shadow-2xl p-4 z-[60] mt-2 hidden" id="location-dropdown">
+<div class="flex flex-col gap-4">
+<div id="savedAddressesList">
+<h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3 px-1">Saved Addresses</h4>
+<div class="flex flex-col gap-2" id="addressList">
+<div class="text-center text-on-surface-variant text-sm py-4">Login to see saved addresses</div>
+</div>
+</div>
+<div class="pt-2 border-t border-outline-variant flex flex-col gap-1">
+<button class="flex items-center gap-3 p-3 rounded-lg hover:bg-primary-fixed/20 transition-colors text-left text-primary font-bold text-sm" onclick="checkLoginAndUseLocation()">
+<span class="material-symbols-outlined">my_location</span>
+Use Current Location
+</button>
+<button class="flex items-center gap-3 p-3 rounded-lg hover:bg-primary-fixed/20 transition-colors text-left text-primary font-bold text-sm" onclick="checkLoginAndAddAddress()">
+<span class="material-symbols-outlined">add_location_alt</span>
+Add New Address
+</button>
+</div>
+</div>
+</div>
+
+<div class="flex items-center gap-4 relative">
+<button class="active:scale-95 duration-200 transition-opacity hover:opacity-80 relative" onclick="window.location.href='Mycart.html'">
+<span class="material-symbols-outlined text-[#803d0a] dark:text-[#ffdbc9]">shopping_cart</span>
+<span class="cart-count" id="cartCount">0</span>
+</button>
+<button class="active:scale-95 duration-200 transition-opacity hover:opacity-80" onclick="checkAuthAndRedirect()">
+<span class="material-symbols-outlined text-[#803d0a] dark:text-[#ffdbc9]">person</span>
+</button>
+</div>
+</header>
+
+<main class="pt-16 pb-28">
+<!-- Harvest Festival Banner -->
+<section class="px-6 mt-6">
+<div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary-container to-primary/20 text-on-primary-container p-6 flex flex-col justify-center min-h-[160px]">
+<div class="absolute right-[-20px] top-[-20px] opacity-20">
+<span class="material-symbols-outlined text-[120px]" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<span class="font-headline font-bold text-sm tracking-widest uppercase opacity-90">Harvest Festival Offer</span>
+<h2 class="font-headline font-extrabold text-3xl mt-1 leading-tight">Flat 20% Off</h2>
+<p class="text-sm mt-2 font-medium opacity-80">Freshly stone-milled grains delivered to your doorstep.</p>
+<div class="mt-4">
+<button class="bg-surface text-primary px-6 py-2 rounded-full font-bold text-sm shadow-sm active:scale-95 duration-150 transition-all" onclick="scrollToProducts()">
+Shop Now
+</button>
+</div>
+</div>
+</section>
+
+<!-- Category Filters -->
+<section class="mt-8 px-6">
+<div class="flex gap-3 overflow-x-auto no-scrollbar pb-2" id="categoryFilters">
+<button class="category-btn whitespace-nowrap bg-primary text-on-primary px-6 py-2.5 rounded-full font-bold text-sm transition-all shadow-md" data-category="all">All</button>
+<button class="category-btn whitespace-nowrap bg-secondary-container text-on-secondary-container px-6 py-2.5 rounded-full font-semibold text-sm hover:bg-surface-container transition-all" data-category="atta">Atta</button>
+<button class="category-btn whitespace-nowrap bg-secondary-container text-on-secondary-container px-6 py-2.5 rounded-full font-semibold text-sm hover:bg-surface-container transition-all" data-category="multigrain">Multigrain</button>
+<button class="category-btn whitespace-nowrap bg-secondary-container text-on-secondary-container px-6 py-2.5 rounded-full font-semibold text-sm hover:bg-surface-container transition-all" data-category="gluten-free">Gluten-Free</button>
+</div>
+</section>
+
+<!-- Product Grid -->
+<section class="mt-6 px-6 pb-4">
+<div class="grid grid-cols-2 gap-x-4 gap-y-8" id="productsGrid">
+<div class="col-span-2 text-center py-12">
+<div class="loading-pulse">Loading products...</div>
+</div>
+</div>
+</section>
+</main>
+
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-[#fafaf5]/70 dark:bg-stone-900/70 backdrop-blur-xl rounded-t-[1.5rem] shadow-[0_-10px_30px_rgba(50,18,0,0.06)] flex justify-around items-center px-4 pb-6 pt-3">
+<div class="flex flex-col items-center justify-center bg-[#f4ddb2] dark:bg-[#9e5421] text-[#71613e] dark:text-[#ffdbc9] rounded-2xl px-5 py-1.5 active:scale-90 duration-150 cursor-pointer" onclick="window.location.href='Index.html'">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-['Manrope'] text-xs font-semibold">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#54433c] dark:text-stone-400 px-5 py-1.5 hover:bg-[#eeeee9] dark:hover:bg-stone-800 rounded-2xl transition-all active:scale-90 duration-150 cursor-pointer" onclick="window.location.href='Order_history.html'">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-['Manrope'] text-xs font-semibold">Orders</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#54433c] dark:text-stone-400 px-5 py-1.5 hover:bg-[#eeeee9] dark:hover:bg-stone-800 rounded-2xl transition-all active:scale-90 duration-150 cursor-pointer" onclick="window.location.href='Mycart.html'">
+<span class="material-symbols-outlined">shopping_basket</span>
+<span class="font-['Manrope'] text-xs font-semibold">Cart</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#54433c] dark:text-stone-400 px-5 py-1.5 hover:bg-[#eeeee9] dark:hover:bg-stone-800 rounded-2xl transition-all active:scale-90 duration-150 cursor-pointer" onclick="window.location.href='profile.html'">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Manrope'] text-xs font-semibold">Profile</span>
+</div>
+</nav>
+
+<script>
+// ==================== PRODUCT DATABASE ====================
+const products = [
+    { id: 'prod_001', name: 'Traditional Sharbati Atta', price: { '500g': 65, '1kg': 120, '5kg': 545 }, image: 'product_1.png', category: 'atta', description: 'Premium stone-ground wheat flour' },
+    { id: 'prod_002', name: 'Stone-Milled Sprouted Ragi', price: { '500g': 135, '1kg': 245 }, image: 'product_2.png', category: 'multigrain', description: 'Nutrient-rich ragi flour' },
+    { id: 'prod_003', name: '9-Grain Multigrain', price: { '1kg': 95, '5kg': 425 }, image: 'product_3.png', category: 'multigrain', description: 'Blend of 9 nutritious grains' },
+    { id: 'prod_004', name: 'Ancient Amaranth', price: { '500g': 185, '1kg': 349 }, image: 'product_4.png', category: 'gluten-free', description: 'Protein-rich amaranth flour' },
+    { id: 'prod_005', name: 'Pure Chana Besan', price: { '1kg': 180 }, image: 'product_5.png', category: 'atta', description: 'Premium chickpea flour' },
+    { id: 'prod_006', name: 'Oat Atta', price: { '500g': 150, '1kg': 280 }, image: 'product_6.png', category: 'gluten-free', description: 'Heart-healthy oat flour' },
+    { id: 'prod_007', name: 'Millet Flour', price: { '1kg': 160 }, image: 'product_7.png', category: 'multigrain', description: 'Traditional millet flour' },
+    { id: 'prod_008', name: 'Rice Flour', price: { '1kg': 95, '5kg': 425 }, image: 'product_8.png', category: 'atta', description: 'Fine rice flour for cooking' },
+    { id: 'prod_009', name: 'Premium Gluten-Free', price: { '500g': 280, '1kg': 520 }, image: 'product_9.png', category: 'gluten-free', description: 'Certified gluten-free blend' },
+    { id: 'prod_010', name: 'Makki Ka Atta', price: { '1kg': 110 }, image: 'product_10.png', category: 'atta', description: 'Pure corn flour' },
+    { id: 'prod_011', name: 'Organic Whole Wheat', price: { '1kg': 110, '5kg': 480 }, image: 'product_11.png', category: 'atta', description: 'Certified organic wheat' },
+    { id: 'prod_012', name: 'Soyabean Flour', price: { '500g': 145 }, image: 'product_12.png', category: 'atta', description: 'High-protein soy flour' }
+];
+
+// ==================== CONFIGURATION ====================
+const API_BASE_URL = 'http://localhost:3000/api';
+let currentSessionId = localStorage.getItem('sessionId');
+let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+let currentCategory = 'all';
+let returnUrl = ''; // Store return URL for login redirect
+
+// ==================== LOGIN CHECK FUNCTIONS ====================
+function isUserLoggedIn() {
+    return currentSessionId !== null && currentSessionId !== undefined;
+}
+
+function checkLoginAndRedirect(targetUrl) {
+    if (isUserLoggedIn()) {
+        window.location.href = targetUrl;
+    } else {
+        // Store the intended destination
+        localStorage.setItem('redirectAfterLogin', targetUrl);
+        showToast('Please login first');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1000);
+    }
+}
+
+function checkLoginAndOpenAddress() {
+    if (isUserLoggedIn()) {
+        toggleLocationDropdown();
+        loadAddresses();
+    } else {
+        localStorage.setItem('redirectAfterLogin', window.location.href);
+        showToast('Please login to manage addresses');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1000);
+    }
+}
+
+function checkLoginAndUseLocation() {
+    if (isUserLoggedIn()) {
+        useCurrentLocation();
+    } else {
+        localStorage.setItem('redirectAfterLogin', window.location.href);
+        showToast('Please login to use current location');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1000);
+    }
+}
+
+function checkLoginAndAddAddress() {
+    if (isUserLoggedIn()) {
+        window.location.href = 'add_address.html';
+    } else {
+        localStorage.setItem('redirectAfterLogin', 'add_address.html');
+        showToast('Please login to add address');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1000);
+    }
+}
+
+function checkAuthAndRedirect() {
+    if (isUserLoggedIn()) {
+        window.location.href = 'profile.html';
+    } else {
+        window.location.href = 'login.html';
+    }
+}
+
+// ==================== HELPER FUNCTIONS ====================
+function showToast(message, duration = 2000) {
+    let toast = document.querySelector('.toast-notification');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.style.opacity = '1';
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, duration);
+}
+
+function updateCartIcon(count) {
+    const cartCount = document.getElementById('cartCount');
+    if (cartCount) {
+        cartCount.textContent = count;
+        cartCount.style.display = count > 0 ? 'flex' : 'none';
+    }
+    localStorage.setItem('cartCount', count);
+}
+
+async function loadCartCount() {
+    if (currentSessionId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/cart/${currentSessionId}`);
+            const data = await response.json();
+            if (data.success) {
+                updateCartIcon(data.cartCount);
+            }
+        } catch (error) {
+            console.log('Server not available, using localStorage');
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            updateCartIcon(cart.reduce((sum, item) => sum + item.quantity, 0));
+        }
+    } else {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        updateCartIcon(cart.reduce((sum, item) => sum + item.quantity, 0));
+    }
+}
+
+function scrollToProducts() {
+    document.querySelector('#productsGrid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ==================== ADDRESS FUNCTIONS ====================
+async function loadAddresses() {
+    if (!currentSessionId) {
+        document.getElementById('addressList').innerHTML = '<div class="text-center text-on-surface-variant text-sm py-4">Login to see saved addresses</div>';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/addresses/${currentSessionId}`);
+        const data = await response.json();
+        
+        if (data.success && data.addresses.length > 0) {
+            const addressHtml = data.addresses.map(addr => `
+                <button class="flex items-start gap-3 p-3 rounded-lg hover:bg-primary-fixed/20 transition-colors text-left group w-full" onclick="selectAddress('${addr.fullAddress.replace(/'/g, "\\'")}', '${addr.label}')">
+                    <span class="material-symbols-outlined text-primary mt-0.5">${addr.label === 'Home' ? 'home' : addr.label === 'Work' ? 'work' : 'location_on'}</span>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-on-surface">${addr.label}</p>
+                        <p class="text-xs text-on-surface-variant line-clamp-1">${addr.fullAddress.substring(0, 50)}...</p>
+                    </div>
+                    <span class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity">check_circle</span>
+                </button>
+            `).join('');
+            document.getElementById('addressList').innerHTML = addressHtml;
+        } else {
+            document.getElementById('addressList').innerHTML = '<div class="text-center text-on-surface-variant text-sm py-4">No saved addresses. Add one!</div>';
+        }
+    } catch (error) {
+        console.log('Error loading addresses:', error);
+    }
+}
+
+function selectAddress(address, label) {
+    document.getElementById('selectedAddressLabel').innerText = label;
+    localStorage.setItem('selectedAddress', address);
+    localStorage.setItem('selectedAddressLabel', label);
+    toggleLocationDropdown();
+    showToast(`Address set to ${label}`);
+}
+
+function useCurrentLocation() {
+    if (navigator.geolocation) {
+        showToast('Getting your location...');
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const address = `Current Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+            document.getElementById('selectedAddressLabel').innerText = 'Current Location';
+            localStorage.setItem('selectedAddress', address);
+            localStorage.setItem('selectedAddressLabel', 'Current Location');
+            toggleLocationDropdown();
+            showToast('Location set!');
+        }, () => {
+            showToast('Unable to get location. Please enable permissions.');
+        });
+    } else {
+        showToast('Geolocation not supported');
+    }
+}
+
+function toggleLocationDropdown() {
+    const dropdown = document.getElementById('location-dropdown');
+    dropdown.classList.toggle('hidden');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('location-dropdown');
+    const button = event.target.closest('button');
+    if (dropdown && !dropdown.classList.contains('hidden')) {
+        if (!button || (button !== document.querySelector('[onclick="checkLoginAndOpenAddress()"]') && 
+            !button.closest('#location-dropdown'))) {
+            dropdown.classList.add('hidden');
+        }
+    }
+});
+
+// ==================== ADD TO CART FUNCTION ====================
+async function addToCart(product, weight, price) {
+    // Allow adding to cart without login (store in localStorage)
+    const cartProduct = {
+        productId: product.id,
+        name: product.name,
+        price: price,
+        weight: weight,
+        quantity: 1,
+        image: product.image,
+        addedAt: new Date().toISOString()
+    };
+    
+    // If logged in, sync with server
+    if (currentSessionId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/cart/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId: currentSessionId, product: cartProduct })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                updateCartIcon(data.cartCount);
+                showToast(`✓ ${product.name} (${weight}) added!`);
+                return true;
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            // Fallback to localStorage
+        }
+    }
+    
+    // Always store in localStorage as backup or primary for guests
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const existingIndex = cart.findIndex(item => item.productId === product.id && item.weight === weight);
+    if (existingIndex !== -1) {
+        cart[existingIndex].quantity += 1;
+    } else {
+        cart.push(cartProduct);
+    }
+    localStorage.setItem('cart', JSON.stringify(cart));
+    const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    updateCartIcon(cartCount);
+    showToast(`✓ ${product.name} (${weight}) added!`);
+    return true;
+}
+
+// ==================== RENDER PRODUCTS ====================
+function renderProducts() {
+    const grid = document.getElementById('productsGrid');
+    if (!grid) return;
+    
+    const filteredProducts = currentCategory === 'all' 
+        ? products 
+        : products.filter(p => p.category === currentCategory);
+    
+    if (filteredProducts.length === 0) {
+        grid.innerHTML = '<div class="col-span-2 text-center py-12 text-on-surface-variant">No products found in this category</div>';
+        return;
+    }
+    
+    grid.innerHTML = filteredProducts.map(product => {
+        const weights = Object.keys(product.price);
+        const defaultWeight = weights[0];
+        const defaultPrice = product.price[defaultWeight];
+        
+        return `
+            <div class="product-card flex flex-col gap-3 group" data-product-id="${product.id}">
+                <div class="relative aspect-square rounded-xl bg-surface-container-low overflow-hidden transition-transform duration-300 group-hover:scale-[1.02]">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent"></div>
+                    <img src="/Users/nikhilmathur/Documents/Home/Images/${product.image}" 
+                         class="w-full h-full object-contain p-4" 
+                         onerror="this.src='https://placehold.co/200x200/e8e8e3/803d0a?text=${product.name.split(' ')[0]}'"
+                         alt="${product.name}"/>
+                </div>
+                <div class="px-1">
+                    <h3 class="font-headline font-bold text-base leading-snug line-clamp-2">${product.name}</h3>
+                    <p class="text-xs text-on-surface-variant mt-0.5 line-clamp-1">${product.description}</p>
+                    <div class="flex flex-wrap gap-1.5 mt-2" id="weight-buttons-${product.id}">
+                        ${weights.map(weight => `
+                            <button class="weight-btn px-2 py-0.5 border border-outline-variant/30 rounded text-[10px] font-bold text-on-surface-variant hover:bg-primary-fixed hover:text-on-primary-fixed transition-colors" data-weight="${weight}" data-price="${product.price[weight]}">${weight}</button>
+                        `).join('')}
+                    </div>
+                    <div class="flex items-center justify-between mt-2">
+                        <p class="font-headline font-extrabold text-primary text-lg" id="price-${product.id}">₹${defaultPrice}</p>
+                        <button class="add-to-cart-btn bg-primary text-on-primary px-3 py-1.5 rounded-lg shadow-md active:scale-90 transition-transform flex items-center justify-center gap-1 font-headline font-bold text-[10px] tracking-wider" data-product='${JSON.stringify(product)}' data-weight="${defaultWeight}" data-price="${defaultPrice}">
+                            <span class="material-symbols-outlined text-[14px]">add_shopping_cart</span>
+                            ADD
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    // Add event listeners for weight buttons
+    products.forEach(product => {
+        const weightContainer = document.getElementById(`weight-buttons-${product.id}`);
+        if (weightContainer) {
+            const weightBtns = weightContainer.querySelectorAll('.weight-btn');
+            const priceElement = document.getElementById(`price-${product.id}`);
+            const addBtn = weightContainer.closest('.product-card')?.querySelector('.add-to-cart-btn');
+            
+            weightBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    weightBtns.forEach(b => {
+                        b.classList.remove('bg-primary-fixed', 'text-on-primary-fixed');
+                        b.classList.add('border', 'border-outline-variant/30');
+                    });
+                    btn.classList.remove('border', 'border-outline-variant/30');
+                    btn.classList.add('bg-primary-fixed', 'text-on-primary-fixed');
+                    const price = parseInt(btn.dataset.price);
+                    const weight = btn.dataset.weight;
+                    if (priceElement) priceElement.innerHTML = `₹${price}`;
+                    if (addBtn) {
+                        addBtn.dataset.weight = weight;
+                        addBtn.dataset.price = price;
+                    }
+                });
+            });
+            // Set first weight as active
+            if (weightBtns[0]) {
+                weightBtns[0].classList.add('bg-primary-fixed', 'text-on-primary-fixed');
+                weightBtns[0].classList.remove('border');
+            }
+        }
+    });
+    
+    // Add event listeners for add to cart buttons
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const productData = JSON.parse(btn.dataset.product);
+            const weight = btn.dataset.weight;
+            const price = parseInt(btn.dataset.price);
+            await addToCart(productData, weight, price);
+        });
+    });
+}
+
+// ==================== CATEGORY FILTER ====================
+function setupCategoryFilters() {
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    categoryBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const category = btn.dataset.category;
+            currentCategory = category;
+            
+            // Update button styles
+            categoryBtns.forEach(b => {
+                b.classList.remove('bg-primary', 'text-on-primary', 'shadow-md');
+                b.classList.add('bg-secondary-container', 'text-on-secondary-container');
+            });
+            btn.classList.remove('bg-secondary-container', 'text-on-secondary-container');
+            btn.classList.add('bg-primary', 'text-on-primary', 'shadow-md');
+            
+            // Re-render products
+            renderProducts();
+        });
+    });
+}
+
+// ==================== CHECK LOGIN STATUS ON LOAD ====================
+async function checkSessionValidity() {
+    if (currentSessionId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/cart/${currentSessionId}`);
+            if (!response.ok) {
+                localStorage.removeItem('sessionId');
+                localStorage.removeItem('user');
+                currentSessionId = null;
+                currentUser = null;
+            }
+        } catch (error) {
+            console.log('Server check failed, using cached session');
+        }
+    }
+}
+
+// ==================== LOAD SAVED ADDRESS ON PAGE LOAD ====================
+function loadSavedAddress() {
+    const savedLabel = localStorage.getItem('selectedAddressLabel');
+    if (savedLabel) {
+        document.getElementById('selectedAddressLabel').innerText = savedLabel;
+    }
+}
+
+// Check for redirect after login
+function checkRedirectAfterLogin() {
+    const redirectUrl = localStorage.getItem('redirectAfterLogin');
+    if (redirectUrl && currentSessionId) {
+        localStorage.removeItem('redirectAfterLogin');
+        window.location.href = redirectUrl;
+    }
+}
+
+// ==================== INITIALIZE PAGE ====================
+async function init() {
+    await checkSessionValidity();
+    checkRedirectAfterLogin();
+    renderProducts();
+    setupCategoryFilters();
+    await loadCartCount();
+    loadSavedAddress();
+}
+
+// Run when page loads
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

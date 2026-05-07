@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Chakki Wala</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#803d0a",
+              "outline": "#87736b",
+              "tertiary": "#8c3220",
+              "on-tertiary": "#ffffff",
+              "inverse-surface": "#2f312e",
+              "surface-dim": "#dadad5",
+              "primary-container": "#9e5421",
+              "surface-container-high": "#e8e8e3",
+              "outline-variant": "#dac1b8",
+              "surface-container": "#eeeee9",
+              "on-background": "#1a1c19",
+              "on-tertiary-container": "#ffe1da",
+              "inverse-primary": "#ffb68c",
+              "surface-tint": "#934b19",
+              "on-error-container": "#93000a",
+              "primary-fixed": "#ffdbc9",
+              "on-tertiary-fixed": "#3e0500",
+              "primary-fixed-dim": "#ffb68c",
+              "surface-container-highest": "#e3e3de",
+              "on-secondary-container": "#71613e",
+              "secondary-fixed-dim": "#dac49b",
+              "secondary": "#6d5c3a",
+              "on-secondary": "#ffffff",
+              "tertiary-fixed": "#ffdad3",
+              "background": "#fafaf5",
+              "surface-container-lowest": "#ffffff",
+              "on-surface": "#1a1c19",
+              "on-primary-container": "#ffe1d2",
+              "surface-container-low": "#f4f4ef",
+              "error": "#ba1a1a",
+              "on-surface-variant": "#54433c",
+              "on-primary": "#ffffff",
+              "tertiary-fixed-dim": "#ffb4a5",
+              "inverse-on-surface": "#f1f1ec",
+              "surface": "#fafaf5",
+              "secondary-fixed": "#f7e0b5",
+              "tertiary-container": "#ab4935",
+              "surface-bright": "#fafaf5",
+              "on-primary-fixed": "#321200",
+              "on-secondary-fixed-variant": "#544525",
+              "on-secondary-fixed": "#251a01",
+              "error-container": "#ffdad6",
+              "on-error": "#ffffff",
+              "surface-variant": "#e3e3de",
+              "secondary-container": "#f4ddb2",
+              "on-primary-fixed-variant": "#753401",
+              "on-tertiary-fixed-variant": "#802918"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        -webkit-tap-highlight-color: transparent;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- Top App Bar -->
+<header class="bg-[#fafaf5] dark:bg-stone-900 sticky top-0 z-40">
+<div class="flex items-center justify-between px-6 h-16 w-full tonal-shift bg-[#f4f4ef] dark:bg-stone-800">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#803d0a] dark:text-[#ffdbc9]">arrow_back</span>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl tracking-tight text-[#803d0a] dark:text-[#ffdbc9]">Order</h1>
+</div>
+<div class="flex items-center gap-3">
+<!-- Date Group Header 
+<span class="material-symbols-outlined text-[#803d0a] dark:text-[#ffdbc9]">search</span>
+<span class="material-symbols-outlined text-[#803d0a] dark:text-[#ffdbc9]">notifications</span>-->
+</div>
+</div>
+</header>
+<main class="pb-32 px-4 pt-6 max-w-lg mx-auto">
+<!-- Date Group Header -->
+<div class="mb-4">
+<h2 class="text-on-surface-variant font-headline font-bold text-sm tracking-widest px-2 mb-4">RECENT ORDERS</h2>
+<div class="space-y-4">
+<!-- Order Card 1: Delivered -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(50,18,0,0.04)] relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-on-surface-variant text-xs font-semibold mb-1">15 March 2024</p>
+<h3 class="font-headline font-bold text-primary text-lg">#CKW-987654</h3>
+</div>
+<span class="bg-secondary-container text-on-secondary-container text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Delivered</span>
+</div>
+<div class="flex items-center gap-4 mb-6">
+<div class="w-16 h-16 rounded-lg bg-surface-container overflow-hidden">
+<img alt="Sharbati Atta Pack" class="w-full h-full object-cover" data-alt="Freshly milled whole wheat flour in paper bag" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwANructLu1TzYK_a-_ioLZ9XLcojaw1hefjwOW_eU1ewMf0jNAsGPHppl8gS212JANFxRdZrcv7AnC1gnQ8JNRQMUConudPvYBUhHMJppkqDQvUrpwdtSECvgwMJHeV_PD8FwXbGv88XoGjdMQOuYkDwnwl9glR--KbCvS8a2NLSPhR9w7SbhAallIjes-Pk5NhYIgSrD-VL2665F1XZP9sTG0VzjZ2YzkIoUBoF5XOTtwBTkqQk3chjint0_RKkgN4KFyiT9n3M"/>
+</div>
+<div class="flex-1">
+<p class="text-sm font-semibold text-on-surface leading-snug">5kg Sharbati Atta, 1kg Besan</p>
+<p class="text-xs text-on-surface-variant mt-1">+ 2 other items</p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-outline-variant/15">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-tighter">Amount Paid</span>
+<span class="text-lg font-headline font-extrabold text-on-primary-fixed">₹565.00</span>
+</div>
+<button class="bg-primary hover:bg-primary-container text-on-primary px-6 py-2.5 rounded-full font-headline font-bold text-sm transition-colors active:scale-95 duration-200">
+                            Reorder
+                        </button>
+</div>
+</div>
+<!-- Order Card 2: In Progress -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(50,18,0,0.04)] relative overflow-hidden">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-on-surface-variant text-xs font-semibold mb-1">Today, 10:30 AM</p>
+<h3 class="font-headline font-bold text-primary text-lg">#CKW-990123</h3>
+</div>
+<span class="bg-primary-fixed text-on-primary-fixed-variant text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">In Progress</span>
+</div>
+<div class="flex items-center gap-4 mb-6">
+<div class="w-16 h-16 rounded-lg bg-surface-container overflow-hidden">
+<img alt="Multigrain Flour" class="w-full h-full object-cover" data-alt="Grains and flour on a rustic surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXN_VU836LrU90vOXjW45ztip5a3CgHjLrdbaPgnB2Jsph6s90G2m13dHgg-snnSRUFBrFk4zN4lBHjOpt3xmU7DDLSDPrXSqhZwqcQ1llz4hXx-wyO46cB-Ht4h9rUV4W9YvBfSBS8wx0eJWF3URSnepXZWX8MeTJSZEOR-AudyHWBLEP0QwXjluZPVjr2DH7M-B4mkdmK_qWB32cT2j4hXzhU4JCxzLdh06wPQVE0FRQRWn6-7Iu7nWdGON6UunKx5Zg9pO81hM"/>
+</div>
+<div class="flex-1">
+<p class="text-sm font-semibold text-on-surface leading-snug">2kg Multigrain Flour, 500g Sattu</p>
+<p class="text-xs text-on-surface-variant mt-1">Freshly milling now</p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-outline-variant/15">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-tighter">Est. Total</span>
+<span class="text-lg font-headline font-extrabold text-on-primary-fixed">₹342.00</span>
+</div>
+<button class="outline outline-1 outline-outline-variant text-primary px-6 py-2.5 rounded-full font-headline font-bold text-sm hover:bg-surface-container-low transition-colors active:scale-95 duration-200">
+                            Track
+                        </button>
+</div>
+</div>
+<!-- Order Card 3: Past Month -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(50,18,0,0.04)] relative">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-on-surface-variant text-xs font-semibold mb-1">28 Feb 2024</p>
+<h3 class="font-headline font-bold text-primary text-lg">#CKW-976211</h3>
+</div>
+<span class="bg-secondary-container text-on-secondary-container text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Delivered</span>
+</div>
+<div class="flex items-center gap-4 mb-6">
+<div class="w-16 h-16 rounded-lg bg-surface-container overflow-hidden">
+<img alt="Organic Pulses" class="w-full h-full object-cover" data-alt="Heap of brown lentils and chickpeas" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANJag2tR_AXJ1StnAdg0Nu404CSQGM17Q00tzhrOsR6dQm78WJcNHPTNj8sQ3UGrMS5kg7GyfUYN5nesHFMaVrCbtuESxchX-IFDdL-7owp3R40XVUPeLAu6qFK4NbyVlIl_DAxWYocXRPRBDB920iR7_RHS_QcoAP47bz3b25cW5BP00cT7BkJUWudJNVv73E8futQDJy1h6qLz4ApqYiUeTKxtjcEVtBN-OJfMdT5fSxWnCneswaOGgwCDw30sTooiQU3LOaR8s"/>
+</div>
+<div class="flex-1">
+<p class="text-sm font-semibold text-on-surface leading-snug">10kg Sharbati Wheat, 2kg Moong Dal</p>
+<p class="text-xs text-on-surface-variant mt-1">Order #976211</p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-outline-variant/15">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-tighter">Amount Paid</span>
+<span class="text-lg font-headline font-extrabold text-on-primary-fixed">₹1,120.00</span>
+</div>
+<button class="bg-primary hover:bg-primary-container text-on-primary px-6 py-2.5 rounded-full font-headline font-bold text-sm transition-colors active:scale-95 duration-200">
+                            Reorder
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation & Sticky CTA -->
+<div class="fixed bottom-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-xl">
+
+<!-- Bottom Navigation Shell -->
+<nav class="w-full flex justify-around items-center px-4 pb-6 pt-3">
+<!-- Home -->
+<a href="/Users/nikhilmathur/Documents/Chakki wala/Home/Index.html">
+<button class="flex flex-col items-center justify-center text-[#54433c] opacity-70 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['Manrope'] text-[11px] font-semibold uppercase tracking-wider mt-1">Home</span>
+</button>
+</a>
+<!-- Cart (Active) -->
+<button class="flex flex-col items-center justify-center bg-[#f4ddb2] text-[#71613e] rounded-2xl px-5 py-2 scale-105 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="font-['Manrope'] text-[11px] font-semibold uppercase tracking-wider mt-1">Order</span>
+</button>
+<!-- Cart (Active) -->
+<a href="/Users/nikhilmathur/Documents/Chakki wala/Mycart/Mycart.html">
+<button class="flex flex-col items-center justify-center text-[#54433c] opacity-70 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-['Manrope'] text-[11px] font-semibold uppercase tracking-wider mt-1">Cart</span>
+</button>
+<!-- Profile -->
+<a href="/Users/nikhilmathur/Documents/Chakki wala/profile/profile.html">
+<button class="flex flex-col items-center justify-center text-[#54433c] opacity-70 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Manrope'] text-[11px] font-semibold uppercase tracking-wider mt-1">Profile</span>
+</nav>
+</div>
+</a>
+</body></html>

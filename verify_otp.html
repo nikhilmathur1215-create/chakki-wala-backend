@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Verify OTP | Chakki Wala</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#803d0a",
+                    "surface": "#fafaf5",
+                    "on-surface": "#1a1c19",
+                    "surface-container-high": "#e8e8e3",
+                    "on-surface-variant": "#54433c",
+                    "outline-variant": "#dac1b8",
+                    "error": "#ba1a1a",
+                    "success": "#2e7d32",
+                },
+                fontFamily: {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Manrope"],
+                },
+            },
+        },
+    }
+</script>
+<style>
+    .otp-input {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        transition: all 0.2s ease;
+    }
+    .otp-input:focus {
+        outline: none;
+        border-bottom-width: 2px;
+        border-bottom-color: #803d0a;
+        transform: translateY(-2px);
+    }
+    .toast-notification {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1a1c19;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        font-family: 'Manrope', sans-serif;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .toast-notification.error {
+        background: #ba1a1a;
+    }
+    .toast-notification.success {
+        background: #2e7d32;
+    }
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    .resend-timer {
+        font-variant-numeric: tabular-nums;
+    }
+</style>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+
+<div class="toast-notification"></div>
+
+<header class="fixed top-0 w-full z-50 bg-[#fafaf5]/70 backdrop-blur-md h-16">
+<div class="flex items-center justify-between px-6 h-full w-full max-w-md mx-auto">
+<button class="text-[#803d0a] active:scale-95 duration-200 transition-opacity hover:opacity-80" onclick="goBack()">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold tracking-tight text-lg text-[#803d0a]">Verify OTP</h1>
+<div class="w-6"></div>
+</div>
+</header>
+
+<main class="pt-24 pb-12 px-6 max-w-md mx-auto min-h-screen flex flex-col">
+<div class="flex flex-col items-center text-center mb-10 mt-4">
+<div class="w-16 h-16 bg-[#f4ddb2] rounded-full flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">shield_person</span>
+</div>
+<h2 class="font-headline font-extrabold text-3xl text-on-surface tracking-tight mb-3">Verification Required</h2>
+<p class="text-on-surface-variant font-medium">
+    We've sent a 6-digit code to <span class="text-primary font-bold" id="mobileDisplay"></span>
+</p>
+<button class="mt-2 text-primary font-bold text-sm hover:opacity-80 transition-opacity flex items-center gap-1" onclick="goBackToLogin()">
+    <span class="material-symbols-outlined text-sm">edit</span>
+    Edit mobile number
+</button>
+</div>
+
+<div class="mb-10">
+<div class="flex justify-between gap-2" id="otpContainer">
+    <input class="otp-input w-12 h-14 bg-surface-container-high text-center text-2xl font-headline font-bold rounded-xl border-none focus:bg-white transition-all" maxlength="1" type="text" inputmode="numeric"/>
+    <input class="otp-input w-12 h-14 bg-surface-container-high text-center text-2xl font-headline font-bold rounded-xl border-none focus:bg-white transition-all" maxlength="1" type="text" inputmode="numeric"/>
+    <input class="otp-input w-12 h-14 bg-surface-container-high text-center text-2xl font-headline font-bold rounded-xl border-none focus:bg-white transition-all" maxlength="1" type="text" inputmode="numeric"/>
+    <input class="otp-input w-12 h-14 bg-surface-container-high text-center text-2xl font-headline font-bold rounded-xl border-none focus:bg-white transition-all" maxlength="1" type="text" inputmode="numeric"/>
+    <input class="otp-input w-12 h-14 bg-surface-container-high text-center text-2xl font-headline font-bold rounded-xl border-none focus:bg-white transition-all" maxlength="1" type="text" inputmode="numeric"/>
+    <input class="otp-input w-12 h-14 bg-surface-container-high text-center text-2xl font-headline font-bold rounded-xl border-none focus:bg-white transition-all" maxlength="1" type="text" inputmode="numeric"/>
+</div>
+<div class="mt-8 flex flex-col items-center gap-2">
+    <div class="flex items-center gap-2 text-on-surface-variant text-sm">
+        <span class="material-symbols-outlined text-base">schedule</span>
+        Resend code in <span class="text-primary font-bold resend-timer" id="timer">0:30</span>
+    </div>
+    <button class="text-outline font-bold text-sm cursor-not-allowed opacity-50 transition-all" id="resendBtn" disabled>Resend OTP</button>
+</div>
+</div>
+
+<div class="mt-auto space-y-6">
+<button class="w-full h-14 bg-gradient-to-br from-primary to-primary-container text-white rounded-full font-headline font-bold text-lg shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2" id="verifyBtn">
+    Verify & Proceed
+    <span class="material-symbols-outlined text-xl">arrow_forward</span>
+</button>
+
+<div class="flex items-center justify-center gap-4 py-4 px-6 bg-surface-container-high rounded-2xl">
+<div class="p-2 bg-white rounded-full shadow-sm">
+<span class="material-symbols-outlined text-secondary text-xl">encrypted</span>
+</div>
+<p class="text-xs text-on-surface-variant font-medium leading-relaxed">
+    Your connection is secured with end-to-end encryption.
+</p>
+</div>
+</div>
+</main>
+
+<script>
+// ==================== CONFIGURATION ====================
+const API_BASE_URL = 'http://localhost:3000/api';
+let timerInterval;
+let timeLeft = 30;
+let mobile = localStorage.getItem('verifyMobile');
+
+// ==================== HELPER FUNCTIONS ====================
+function showToast(message, type = 'error') {
+    let toast = document.querySelector('.toast-notification');
+    toast.textContent = message;
+    toast.className = `toast-notification ${type}`;
+    toast.style.opacity = '1';
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, 3000);
+}
+
+function goBack() {
+    window.location.href = 'login.html';
+}
+
+function goBackToLogin() {
+    localStorage.removeItem('verifyMobile');
+    window.location.href = 'login.html';
+}
+
+// ==================== DISPLAY MOBILE NUMBER ====================
+if (mobile) {
+    const formattedMobile = mobile.slice(0, 5) + ' ' + mobile.slice(5);
+    document.getElementById('mobileDisplay').innerText = `+91 ${formattedMobile}`;
+} else {
+    // No mobile found, redirect to login
+    showToast('Session expired. Please login again.', 'error');
+    setTimeout(() => {
+        window.location.href = 'login.html';
+    }, 1500);
+}
+
+// ==================== OTP INPUT HANDLING ====================
+const inputs = document.querySelectorAll('.otp-input');
+inputs.forEach((input, index) => {
+    input.addEventListener('input', (e) => {
+        // Allow only numbers
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        
+        if (e.target.value.length === 1 && index < inputs.length - 1) {
+            inputs[index + 1].focus();
+        }
+        
+        // Auto-submit when all fields are filled
+        const allFilled = Array.from(inputs).every(inp => inp.value.length === 1);
+        if (allFilled) {
+            verifyOTP();
+        }
+    });
+    
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && index > 0) {
+            inputs[index - 1].focus();
+        }
+    });
+    
+    // Paste OTP support
+    input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData('text');
+        const otpDigits = pastedData.replace(/[^0-9]/g, '').slice(0, 6);
+        
+        if (otpDigits) {
+            for (let i = 0; i < otpDigits.length && i < inputs.length; i++) {
+                inputs[i].value = otpDigits[i];
+            }
+            // Focus on next empty field or last field
+            const nextEmptyIndex = Array.from(inputs).findIndex(inp => !inp.value);
+            if (nextEmptyIndex !== -1) {
+                inputs[nextEmptyIndex].focus();
+            } else {
+                inputs[inputs.length - 1].focus();
+                verifyOTP();
+            }
+        }
+    });
+});
+
+// ==================== TIMER FUNCTION ====================
+function startTimer() {
+    timeLeft = 30;
+    const timerElem = document.getElementById('timer');
+    const resendBtn = document.getElementById('resendBtn');
+    
+    if (timerInterval) clearInterval(timerInterval);
+    
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft >= 0) {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            timerElem.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            resendBtn.disabled = false;
+            resendBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            resendBtn.classList.add('text-primary', 'cursor-pointer', 'hover:underline');
+            timerElem.innerText = '0:00';
+        }
+    }, 1000);
+}
+
+// ==================== RESEND OTP ====================
+async function resendOTP() {
+    if (timeLeft > 0) {
+        showToast(`Please wait ${timeLeft} seconds before resending`, 'error');
+        return;
+    }
+    
+    if (!mobile) {
+        showToast('Session expired. Please login again.', 'error');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    const resendBtn = document.getElementById('resendBtn');
+    resendBtn.disabled = true;
+    resendBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    resendBtn.classList.remove('text-primary', 'cursor-pointer', 'hover:underline');
+    resendBtn.innerHTML = 'Sending...';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/send-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mobile: mobile })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            startTimer();
+            if (data.testOtp) {
+                alert(`📱 New OTP sent: ${data.testOtp}`);
+            }
+            showToast('✓ OTP resent successfully', 'success');
+            // Clear OTP inputs
+            inputs.forEach(input => input.value = '');
+            inputs[0].focus();
+        } else {
+            showToast('❌ Failed to resend OTP', 'error');
+            resendBtn.disabled = false;
+        }
+    } catch (error) {
+        console.error('Resend error:', error);
+        showToast('⚠️ Network error. Please try again.', 'error');
+        resendBtn.disabled = false;
+    }
+    
+    resendBtn.innerHTML = 'Resend OTP';
+}
+
+// ==================== VERIFY OTP ====================
+async function verifyOTP() {
+    const otp = Array.from(inputs).map(input => input.value).join('');
+    
+    if (otp.length !== 6) {
+        showToast('Please enter 6-digit OTP', 'error');
+        return;
+    }
+    
+    if (!mobile) {
+        showToast('Session expired. Please login again.', 'error');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    const verifyBtn = document.getElementById('verifyBtn');
+    const originalText = verifyBtn.innerHTML;
+    verifyBtn.disabled = true;
+    verifyBtn.innerHTML = '<span class="loading-spinner"></span> Verifying...';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/verify-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mobile, otp, userName: '' })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Save session data
+            localStorage.setItem('sessionId', data.sessionId);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.removeItem('verifyMobile');
+            
+            showToast('✓ Login successful! Redirecting...', 'success');
+            
+            // Check if there's a redirect URL (from cart/checkout)
+            const redirectUrl = localStorage.getItem('redirectAfterLogin');
+            
+            if (redirectUrl) {
+                localStorage.removeItem('redirectAfterLogin');
+                setTimeout(() => {
+                    window.location.href = redirectUrl;
+                }, 1000);
+            } else {
+                // Redirect to Mycart.html as requested
+                setTimeout(() => {
+                    window.location.href = 'Mycart.html';
+                }, 1000);
+            }
+        } else {
+            // OTP is incorrect - show error and let user try again
+            showToast(`❌ ${data.error || 'Invalid OTP. Please try again.'}`, 'error');
+            
+            // Clear OTP inputs for retry
+            inputs.forEach(input => input.value = '');
+            inputs[0].focus();
+            
+            verifyBtn.disabled = false;
+            verifyBtn.innerHTML = originalText;
+        }
+    } catch (error) {
+        console.error('Verification error:', error);
+        showToast('⚠️ Network error. Please check your connection.', 'error');
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = originalText;
+    }
+}
+
+// ==================== EVENT LISTENERS ====================
+document.getElementById('verifyBtn').addEventListener('click', verifyOTP);
+document.getElementById('resendBtn').addEventListener('click', resendOTP);
+
+// ==================== INITIALIZE ====================
+startTimer();
+
+// Auto-focus first input on page load
+setTimeout(() => {
+    inputs[0].focus();
+}, 100);
+</script>
+</body>
+</html>
