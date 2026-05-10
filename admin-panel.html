@@ -13,12 +13,8 @@
         .status-Cancelled { background-color: #ef4444; }
         .tab-active { background-color: #803d0a !important; color: white !important; }
         .tab-inactive { background-color: #f3f4f6 !important; color: #6b7280 !important; }
-        .tab-inactive:hover { background-color: #e5e7eb !important; }
-        @media print {
-            .no-print { display: none; }
-            body { background: white; padding: 20px; }
-            .print-order { display: block; }
-        }
+        .slot-enabled { background-color: #10b981 !important; }
+        .slot-disabled { background-color: #ef4444 !important; }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -32,30 +28,56 @@
             <div id="loginError" class="text-red-500 text-sm mt-2 hidden"></div>
         </div>
         
-        <div id="ordersSection" style="display: none;">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h2 class="text-2xl font-bold">Order Management</h2>
-                    <p id="orderCount" class="text-xs text-gray-500 mt-1"></p>
-                </div>
-                <div class="flex gap-3 no-print">
-                    <button onclick="exportToCSV()" class="bg-green-600 text-white px-4 py-2 rounded-lg">📥 Export CSV</button>
-                    <button onclick="refreshOrders()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">🔄 Refresh</button>
-                    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg">🚪 Logout</button>
-                </div>
+        <div id="adminContent" style="display: none;">
+            <!-- Tab Navigation -->
+            <div class="flex border-b mb-6">
+                <button onclick="showTab('orders')" id="tabOrdersBtn" class="px-6 py-3 font-semibold text-primary border-b-2 border-primary">📦 Orders</button>
+                <button onclick="showTab('slots')" id="tabSlotsBtn" class="px-6 py-3 font-semibold text-gray-500">⏰ Delivery Slots</button>
             </div>
             
-            <!-- Status Tabs -->
-            <div class="flex flex-wrap gap-2 mb-6 no-print">
-                <button id="tab-all" onclick="filterOrders('all')" class="tab-active px-5 py-2 rounded-full font-semibold transition-all">📋 All Orders</button>
-                <button id="tab-Confirmed" onclick="filterOrders('Confirmed')" class="tab-inactive px-5 py-2 rounded-full font-semibold transition-all">✅ Confirmed</button>
-                <button id="tab-Processing" onclick="filterOrders('Processing')" class="tab-inactive px-5 py-2 rounded-full font-semibold transition-all">⚙️ Processing</button>
-                <button id="tab-OutforDelivery" onclick="filterOrders('Out for Delivery')" class="tab-inactive px-5 py-2 rounded-full font-semibold transition-all">🚚 Out for Delivery</button>
-                <button id="tab-Delivered" onclick="filterOrders('Delivered')" class="tab-inactive px-5 py-2 rounded-full font-semibold transition-all">✅ Delivered</button>
-                <button id="tab-Cancelled" onclick="filterOrders('Cancelled')" class="tab-inactive px-5 py-2 rounded-full font-semibold transition-all">❌ Cancelled</button>
+            <!-- Orders Section -->
+            <div id="ordersSection">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold">Order Management</h2>
+                        <p id="orderCount" class="text-xs text-gray-500 mt-1"></p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="exportToCSV()" class="bg-green-600 text-white px-4 py-2 rounded-lg">📥 Export CSV</button>
+                        <button onclick="refreshOrders()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">🔄 Refresh</button>
+                        <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg">🚪 Logout</button>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button id="tab-all" onclick="filterOrders('all')" class="tab-active px-5 py-2 rounded-full font-semibold transition-all">📋 All Orders</button>
+                    <button id="tab-Confirmed" onclick="filterOrders('Confirmed')" class="tab-inactive px-5 py-2 rounded-full font-semibold transition-all">✅ Confirmed</button>
+                    <button id="tab-Processing" onclick="filterOrders('Processing')" class="tab-inactive px-5 py-2 rounded-full font-semibold transition-all">⚙️ Processing</button>
+                    <button id="tab-OutforDelivery" onclick="filterOrders('Out for Delivery')" class="tab-inactive px-5 py-2 rounded-full font-semibold transition-all">🚚 Out for Delivery</button>
+                    <button id="tab-Delivered" onclick="filterOrders('Delivered')" class="tab-inactive px-5 py-2 rounded-full font-semibold transition-all">✅ Delivered</button>
+                    <button id="tab-Cancelled" onclick="filterOrders('Cancelled')" class="tab-inactive px-5 py-2 rounded-full font-semibold transition-all">❌ Cancelled</button>
+                </div>
+                
+                <div id="ordersList" class="space-y-4"></div>
             </div>
             
-            <div id="ordersList" class="space-y-4"></div>
+            <!-- Delivery Slots Section -->
+            <div id="slotsSection" style="display: none;">
+                <h2 class="text-2xl font-bold mb-6">⏰ Delivery Slot Management</h2>
+                <p class="text-sm text-gray-600 mb-4">Enable/disable slots based on order load. Slots are automatically disabled 1 hours before their start time.</p>
+                
+                <div id="slotsList" class="space-y-4"></div>
+                
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <h3 class="font-semibold text-blue-800 mb-2">📌 Auto-disable Rule</h3>
+                    <p class="text-sm text-blue-700">Any time slot will be automatically disabled 1 hours before its scheduled start time. For example:</p>
+                    <ul class="text-sm text-blue-700 mt-2 list-disc list-inside">
+                        <li>12 PM - 4 PM slot: Disabled after 10 AM</li>
+                        <li>4 PM - 8 PM slot: Disabled after 2 PM</li>
+                        <li>8 PM - 10 PM slot: Disabled after 6 PM</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -64,29 +86,27 @@
         let currentAdminKey = null;
         let allOrders = [];
         let currentFilter = 'all';
+        let currentTab = 'orders';
         
-        // Login function
         async function login() {
             const adminKey = document.getElementById('adminKey').value;
             const errorDiv = document.getElementById('loginError');
-            
             if (!adminKey) {
                 errorDiv.innerText = 'Please enter admin key';
                 errorDiv.classList.remove('hidden');
                 return;
             }
-            
             errorDiv.classList.add('hidden');
             currentAdminKey = adminKey;
-            
             try {
-                const response = await fetch(`${API_BASE_URL}/admin/orders?adminKey=${adminKey}`);
+                const response = await fetch(API_BASE_URL + '/admin/orders?adminKey=' + adminKey);
                 const data = await response.json();
                 if (data.success) {
                     document.getElementById('loginSection').style.display = 'none';
-                    document.getElementById('ordersSection').style.display = 'block';
+                    document.getElementById('adminContent').style.display = 'block';
                     allOrders = data.orders || [];
                     renderOrders();
+                    loadSlots();
                 } else {
                     errorDiv.innerText = data.error || 'Invalid admin key';
                     errorDiv.classList.remove('hidden');
@@ -97,33 +117,125 @@
             }
         }
         
-        // Logout function
+        function showTab(tab) {
+            currentTab = tab;
+            const ordersSection = document.getElementById('ordersSection');
+            const slotsSection = document.getElementById('slotsSection');
+            const ordersBtn = document.getElementById('tabOrdersBtn');
+            const slotsBtn = document.getElementById('tabSlotsBtn');
+            
+            if (tab === 'orders') {
+                ordersSection.style.display = 'block';
+                slotsSection.style.display = 'none';
+                ordersBtn.className = 'px-6 py-3 font-semibold text-primary border-b-2 border-primary';
+                slotsBtn.className = 'px-6 py-3 font-semibold text-gray-500';
+                renderOrders();
+            } else {
+                ordersSection.style.display = 'none';
+                slotsSection.style.display = 'block';
+                ordersBtn.className = 'px-6 py-3 font-semibold text-gray-500';
+                slotsBtn.className = 'px-6 py-3 font-semibold text-primary border-b-2 border-primary';
+                loadSlots();
+            }
+        }
+        
+        async function loadSlots() {
+            try {
+                const response = await fetch(API_BASE_URL + '/admin/slots?adminKey=' + currentAdminKey);
+                const data = await response.json();
+                if (data.success) {
+                    renderSlots(data.slots);
+                }
+            } catch(error) {
+                console.error('Error loading slots:', error);
+            }
+        }
+        
+        async function updateSlotStatus(slotId, enabled) {
+            try {
+                const response = await fetch(API_BASE_URL + '/admin/update-slot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminKey: currentAdminKey, slotId, enabled })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert(`Slot ${enabled ? 'enabled' : 'disabled'} successfully!`);
+                    loadSlots();
+                }
+            } catch(error) {
+                alert('Error updating slot status');
+            }
+        }
+        
+        function renderSlots(slots) {
+            const container = document.getElementById('slotsList');
+            if (!slots || slots.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 bg-white rounded-lg">No slots configured</div>';
+                return;
+            }
+            
+            let html = '';
+            for (let slot of slots) {
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMinutes = now.getMinutes();
+                const currentTimeInMinutes = (currentHour * 60) + currentMinutes;
+                const slotStartMinutes = slot.startHour * 60;
+                const cutoffTime = currentTimeInMinutes + (slot.cutoffHours * 60);
+                const isPastCutoff = slotStartMinutes <= cutoffTime;
+                
+                html += `
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="p-4 border-b">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3 class="font-bold text-lg">${slot.name}</h3>
+                                    <p class="text-sm text-gray-600">Time: ${slot.time}</p>
+                                    <p class="text-xs text-gray-500">Cutoff: ${slot.cutoffHours} hours before start time</p>
+                                    ${isPastCutoff && slot.enabled ? '<p class="text-xs text-orange-500 mt-1">⚠️ Auto-disabled (past cutoff time)</p>' : ''}
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="px-3 py-1 rounded-full text-white text-sm ${slot.enabled ? 'slot-enabled' : 'slot-disabled'}">
+                                        ${slot.enabled ? 'ENABLED' : 'DISABLED'}
+                                    </span>
+                                    <button onclick="updateSlotStatus('${slot.id}', ${!slot.enabled})" 
+                                        class="px-4 py-2 rounded-lg ${slot.enabled ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'} text-white transition">
+                                        ${slot.enabled ? 'Disable' : 'Enable'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-gray-50 text-sm">
+                            📍 Customers can select this slot only if they place order before ${slot.startHour - slot.cutoffHours}:00
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+        
         function logout() {
             currentAdminKey = null;
             document.getElementById('loginSection').style.display = 'block';
-            document.getElementById('ordersSection').style.display = 'none';
+            document.getElementById('adminContent').style.display = 'none';
             document.getElementById('adminKey').value = '';
         }
         
-        // Refresh orders
         async function refreshOrders() {
             if (!currentAdminKey) return;
             try {
-                const response = await fetch(`${API_BASE_URL}/admin/orders?adminKey=${currentAdminKey}`);
+                const response = await fetch(API_BASE_URL + '/admin/orders?adminKey=' + currentAdminKey);
                 const data = await response.json();
                 if (data.success) {
                     allOrders = data.orders || [];
                     renderOrders();
                 }
-            } catch(error) {
-                console.error('Refresh error:', error);
-            }
+            } catch(error) { console.error('Refresh error:', error); }
         }
         
-        // Filter orders by status
         function filterOrders(status) {
             currentFilter = status;
-            // Update tab styles
             const tabs = ['all', 'Confirmed', 'Processing', 'Out for Delivery', 'Delivered', 'Cancelled'];
             for (let i = 0; i < tabs.length; i++) {
                 const tabId = 'tab-' + tabs[i].replace(/ /g, '');
@@ -139,13 +251,11 @@
             renderOrders();
         }
         
-        // Get filtered orders based on selected tab
         function getFilteredOrders() {
             if (currentFilter === 'all') return allOrders;
             return allOrders.filter(order => order.orderStatus === currentFilter);
         }
         
-        // Sort orders by date (newest first)
         function sortOrdersByDate(orders) {
             return [...orders].sort((a, b) => {
                 const dateA = a.createdAt || a.orderDate;
@@ -156,13 +266,11 @@
             });
         }
         
-        // Update order status
         async function updateStatus(orderId) {
             const select = document.getElementById(`status-${orderId}`);
             const newStatus = select.value;
-            
             try {
-                const response = await fetch(`${API_BASE_URL}/admin/update-order-status`, {
+                const response = await fetch(API_BASE_URL + '/admin/update-order-status', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ orderId, status: newStatus, adminKey: currentAdminKey })
@@ -171,85 +279,30 @@
                 if (data.success) {
                     alert(`✅ Order ${orderId} updated to ${newStatus}`);
                     refreshOrders();
-                } else {
-                    alert('Failed to update status');
                 }
-            } catch(error) {
-                alert('Error: ' + error.message);
-            }
+            } catch(error) { alert('Error: ' + error.message); }
         }
         
-        // Print individual order
         function printOrder(orderId) {
             const printContent = document.getElementById(`print-order-${orderId}`).innerHTML;
             const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>Order ${orderId}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 20px; }
-                        table { width: 100%; border-collapse: collapse; }
-                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                        th { background-color: #f2f2f2; }
-                        .header { text-align: center; margin-bottom: 20px; }
-                        .footer { text-align: center; margin-top: 20px; font-size: 12px; }
-                    </style>
-                </head>
-                <body>
-                    ${printContent}
-                    <div class="footer">Thank you for shopping with Chakki Wala!</div>
-                </body>
-                </html>
-            `);
+            printWindow.document.write(`<html><head><title>Order ${orderId}</title><style>body{font-family:Arial;padding:20px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:left;}th{background:#f2f2f2;}</style></head><body>${printContent}</body></html>`);
             printWindow.document.close();
             printWindow.print();
         }
         
-        // Export all orders to CSV
         function exportToCSV() {
-            const headers = ['Order ID', 'Date', 'Time', 'Status', 'Customer Name', 'Customer Mobile', 'Delivery Slot', 'Payment Method', 'Order Total', 'Address', 'Products'];
-            const rows = [];
-            
-            for (let i = 0; i < allOrders.length; i++) {
-                const order = allOrders[i];
-                const products = (order.items || []).map(item => `${item.name} x${item.quantity} (₹${item.price})`).join('; ');
-                rows.push([
-                    order.orderId,
-                    order.orderDate,
-                    order.orderTime,
-                    order.orderStatus,
-                    order.customerName,
-                    order.customerMobile,
-                    order.deliverySlot,
-                    order.paymentMethod,
-                    order.orderTotal,
-                    order.address,
-                    products
-                ]);
-            }
-            
-            const csvContent = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `chakki_wala_orders_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
-            alert('✅ CSV exported successfully!');
+            window.open(API_BASE_URL + '/export/csv?adminKey=' + currentAdminKey, '_blank');
         }
         
-        // Render orders
         function renderOrders() {
             const container = document.getElementById('ordersList');
             const filtered = getFilteredOrders();
             const sorted = sortOrdersByDate(filtered);
-            
             document.getElementById('orderCount').innerHTML = `📊 Total: ${allOrders.length} | 📋 Showing: ${sorted.length} ${currentFilter === 'all' ? 'orders' : currentFilter}`;
             
             if (!sorted || sorted.length === 0) {
-                container.innerHTML = `<div class="text-center py-12 bg-white rounded-lg"><span class="material-symbols-outlined text-5xl text-gray-400">inbox</span><p class="text-gray-500 mt-2">No orders found in ${currentFilter === 'all' ? 'any status' : currentFilter}</p><p class="text-xs text-gray-400 mt-1">Place a test order from the website</p></div>`;
+                container.innerHTML = `<div class="text-center py-12 bg-white rounded-lg"><p class="text-gray-500">No orders found</p></div>`;
                 return;
             }
             
@@ -258,66 +311,43 @@
                 const order = sorted[i];
                 const statusClass = 'status-' + (order.orderStatus || 'Confirmed').replace(/ /g, '');
                 
-                // Hidden print div
-                html += `<div id="print-order-${order.orderId}" style="display:none;">`;
-                html += `<div class="header"><h2>Chakki Wala - Order Summary</h2><p><strong>Order #${order.orderId}</strong> | Date: ${order.orderDate} at ${order.orderTime}</p></div>`;
-                html += `<p><strong>Customer:</strong> ${order.customerName || 'N/A'} (${order.customerMobile || 'N/A'})</p>`;
-                html += `<p><strong>Delivery Address:</strong> ${order.address || 'N/A'}</p>`;
-                html += `<p><strong>Delivery Slot:</strong> ${order.deliverySlot || 'Not selected'}</p>`;
-                html += `<p><strong>Payment Method:</strong> ${order.paymentMethod || 'N/A'}</p>`;
-                html += `<p><strong>Order Status:</strong> ${order.orderStatus || 'Confirmed'}</p>`;
-                html += `<p><strong>Total Amount:</strong> ₹${order.orderTotal || 0}</p>`;
-                html += `<h3>Order Items</h3><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>`;
-                for (let item of (order.items || [])) {
-                    html += `<tr><td>${item.name}</td><td>${item.quantity}</td><td>₹${item.price}</td><td>₹${item.price * item.quantity}</td></tr>`;
-                }
-                html += `</tbody></table></div>`;
+                html += `<div id="print-order-${order.orderId}" style="display:none;"><h2>Order #${order.orderId}</h2><p>Date: ${order.orderDate}</p><p>Customer: ${order.customerName}</p><p>Total: ₹${order.orderTotal}</p><table border="1"><tr><th>Product</th><th>Qty</th><th>Price</th></tr>${(order.items || []).map(item => `<tr><td>${item.name}</td><td>${item.quantity}</td><td>₹${item.price}</td></tr>`).join('')}</table></div>`;
                 
-                // Visible order card
-                html += `<div class="bg-white rounded-lg shadow-md overflow-hidden mb-4">`;
-                html += `<div class="bg-gray-50 p-4 border-b">`;
-                html += `<div class="flex justify-between items-start flex-wrap gap-3">`;
-                html += `<div><h3 class="font-bold text-lg">📦 Order #${order.orderId}</h3>`;
-                html += `<p class="text-sm text-gray-500">📅 ${order.orderDate} at ${order.orderTime}</p>`;
-                html += `<p class="text-sm text-gray-500">🚚 Delivery: ${order.deliverySlot || 'Not selected'}</p></div>`;
-                html += `<div class="text-right"><p class="font-bold text-amber-800 text-2xl">₹${order.orderTotal || 0}</p>`;
-                html += `<p class="text-sm text-gray-500">💳 ${order.paymentMethod || 'N/A'}</p></div></div></div>`;
-                
-                html += `<div class="p-4 border-b"><h4 class="font-semibold text-gray-700 mb-2">👤 Customer Details</h4>`;
-                html += `<div class="grid grid-cols-2 gap-4"><div><p class="text-sm text-gray-500">Name</p><p class="font-medium">${order.customerName || 'N/A'}</p></div>`;
-                html += `<div><p class="text-sm text-gray-500">Mobile</p><p class="font-medium">${order.customerMobile || 'N/A'}</p></div></div></div>`;
-                
-                html += `<div class="p-4 border-b bg-gray-50"><h4 class="font-semibold text-gray-700 mb-2">📍 Delivery Address</h4>`;
-                html += `<p class="text-sm">${order.address || 'Address not available'}</p></div>`;
-                
-                html += `<div class="p-4 border-b"><h4 class="font-semibold text-gray-700 mb-3">📦 Order Items</h4>`;
-                html += `<div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-100"><tr><th class="p-2 text-left">Product</th><th class="p-2 text-center">Weight</th><th class="p-2 text-center">Qty</th><th class="p-2 text-right">Price</th><th class="p-2 text-right">Total</th></tr></thead><tbody>`;
-                for (let item of (order.items || [])) {
-                    html += `<tr class="border-b"><td class="p-2">${item.name}</td><td class="p-2 text-center">${item.weight || '-'}</td><td class="p-2 text-center">${item.quantity}</td><td class="p-2 text-right">₹${item.price}</td><td class="p-2 text-right">₹${item.price * item.quantity}</td></tr>`;
-                }
-                html += `<tr class="bg-gray-50 font-bold"><td colspan="4" class="p-2 text-right">Grand Total:</td><td class="p-2 text-right text-amber-800">₹${order.orderTotal}</td></tr>`;
-                html += `</tbody></table></div></div>`;
-                
-                html += `<div class="p-4"><div class="flex flex-wrap gap-4 items-center justify-between">`;
-                html += `<div><p class="text-sm text-gray-500 mb-1">Current Status</p><span class="inline-block px-3 py-1 rounded-full text-white text-sm ${statusClass}">${order.orderStatus || 'Confirmed'}</span></div>`;
-                html += `<div class="flex-1 min-w-[200px]"><p class="text-sm text-gray-500 mb-1">Update Status</p>`;
-                html += `<div class="flex gap-2"><select id="status-${order.orderId}" class="p-2 border rounded-lg flex-1">`;
-                html += `<option value="Confirmed" ${order.orderStatus === 'Confirmed' ? 'selected' : ''}>Confirmed</option>`;
-                html += `<option value="Processing" ${order.orderStatus === 'Processing' ? 'selected' : ''}>Processing</option>`;
-                html += `<option value="Out for Delivery" ${order.orderStatus === 'Out for Delivery' ? 'selected' : ''}>Out for Delivery</option>`;
-                html += `<option value="Delivered" ${order.orderStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>`;
-                html += `<option value="Cancelled" ${order.orderStatus === 'Cancelled' ? 'selected' : ''}>Cancelled</option>`;
-                html += `</select><button onclick="updateStatus('${order.orderId}')" class="bg-amber-800 text-white px-4 py-2 rounded-lg">Update</button>`;
-                html += `<button onclick="printOrder('${order.orderId}')" class="bg-blue-600 text-white px-4 py-2 rounded-lg no-print">🖨️ Print</button>`;
-                html += `</div></div></div></div></div>`;
+                html += `<div class="bg-white rounded-lg shadow-md overflow-hidden mb-4">
+                    <div class="bg-gray-50 p-4 border-b">
+                        <div class="flex justify-between items-start flex-wrap gap-3">
+                            <div><h3 class="font-bold text-lg">📦 Order #${order.orderId}</h3>
+                            <p class="text-sm text-gray-500">📅 ${order.orderDate} at ${order.orderTime}</p>
+                            <p class="text-sm text-gray-500">🚚 Delivery: ${order.deliverySlot || 'Not selected'}</p></div>
+                            <div class="text-right"><p class="font-bold text-amber-800 text-2xl">₹${order.orderTotal || 0}</p>
+                            <p class="text-sm text-gray-500">💳 ${order.paymentMethod || 'N/A'}</p></div>
+                        </div>
+                    </div>
+                    <div class="p-4 border-b"><h4 class="font-semibold">👤 Customer</h4>
+                    <div class="grid grid-cols-2 gap-4"><div><p class="text-sm text-gray-500">Name</p><p class="font-medium">${order.customerName || 'N/A'}</p></div>
+                    <div><p class="text-sm text-gray-500">Mobile</p><p class="font-medium">${order.customerMobile || 'N/A'}</p></div></div></div>
+                    <div class="p-4 border-b bg-gray-50"><h4 class="font-semibold">📍 Delivery Address</h4><p class="text-sm">${order.address || 'N/A'}</p></div>
+                    <div class="p-4 border-b"><h4 class="font-semibold">📦 Items</h4><table class="w-full text-sm"><thead class="bg-gray-100"><tr><th class="p-2">Product</th><th class="p-2">Qty</th><th class="p-2">Price</th><th class="p-2">Total</th></tr></thead><tbody>
+                    ${(order.items || []).map(item => `<tr><td class="p-2">${item.name}</td><td class="p-2 text-center">${item.quantity}</td><td class="p-2 text-right">₹${item.price}</td><td class="p-2 text-right">₹${item.price * item.quantity}</td></tr>`).join('')}
+                    <tr class="bg-gray-50 font-bold"><td colspan="3" class="p-2 text-right">Grand Total:</td><td class="p-2 text-right text-amber-800">₹${order.orderTotal}</td></tr>
+                    </tbody></table></div>
+                    <div class="p-4"><div class="flex flex-wrap gap-4 items-center justify-between">
+                    <div><p class="text-sm text-gray-500 mb-1">Status</p><span class="inline-block px-3 py-1 rounded-full text-white text-sm ${statusClass}">${order.orderStatus || 'Confirmed'}</span></div>
+                    <div class="flex-1 min-w-[200px]"><p class="text-sm text-gray-500 mb-1">Update Status</p>
+                    <div class="flex gap-2"><select id="status-${order.orderId}" class="p-2 border rounded-lg flex-1">
+                    <option value="Confirmed" ${order.orderStatus === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
+                    <option value="Processing" ${order.orderStatus === 'Processing' ? 'selected' : ''}>Processing</option>
+                    <option value="Out for Delivery" ${order.orderStatus === 'Out for Delivery' ? 'selected' : ''}>Out for Delivery</option>
+                    <option value="Delivered" ${order.orderStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                    <option value="Cancelled" ${order.orderStatus === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                    </select><button onclick="updateStatus('${order.orderId}')" class="bg-amber-800 text-white px-4 py-2 rounded-lg">Update</button>
+                    <button onclick="printOrder('${order.orderId}')" class="bg-blue-600 text-white px-4 py-2 rounded-lg">🖨️ Print</button></div></div></div></div></div>`;
             }
             container.innerHTML = html;
         }
         
-        // Auto refresh every 10 seconds
-        setInterval(() => {
-            if (currentAdminKey) refreshOrders();
-        }, 10000);
+        setInterval(() => { if (currentAdminKey && currentTab === 'orders') refreshOrders(); }, 10000);
+        setInterval(() => { if (currentAdminKey && currentTab === 'slots') loadSlots(); }, 30000);
     </script>
 </body>
 </html>

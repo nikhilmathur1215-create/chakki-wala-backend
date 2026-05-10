@@ -1,0 +1,29 @@
+[
+  {
+    "id": "slot1",
+    "name": "Morning",
+    "time": "12:00 PM - 04:00 PM",
+    "startHour": 12,
+    "endHour": 16,
+    "enabled": true,
+    "cutoffHours": 2
+  },
+  {
+    "id": "slot2",
+    "name": "Evening",
+    "time": "04:00 PM - 08:00 PM",
+    "startHour": 16,
+    "endHour": 20,
+    "enabled": true,
+    "cutoffHours": 2
+  },
+  {
+    "id": "slot3",
+    "name": "Night",
+    "time": "08:00 PM - 10:00 PM",
+    "startHour": 20,
+    "endHour": 22,
+    "enabled": true,
+    "cutoffHours": 2
+  }
+]
