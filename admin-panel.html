@@ -15,6 +15,44 @@
         .tab-inactive { background-color: #f3f4f6 !important; color: #6b7280 !important; }
         .slot-enabled { background-color: #10b981 !important; }
         .slot-disabled { background-color: #ef4444 !important; }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .new-order-alert {
+            animation: pulse 0.5s ease-in-out 3;
+            background-color: #ffeb3b !important;
+        }
+        .notification-badge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #ef4444;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        .notification-badge.show {
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -29,6 +67,13 @@
         </div>
         
         <div id="adminContent" style="display: none;">
+            <!-- Notification Badge -->
+            <div id="notificationBadge" class="notification-badge" onclick="scrollToNewOrder()">
+                <span>🔔</span>
+                <span id="newOrderCount">0</span>
+                <span>new order(s)</span>
+            </div>
+            
             <!-- Tab Navigation -->
             <div class="flex border-b mb-6">
                 <button onclick="showTab('orders')" id="tabOrdersBtn" class="px-6 py-3 font-semibold text-primary border-b-2 border-primary">📦 Orders</button>
@@ -43,6 +88,7 @@
                         <p id="orderCount" class="text-xs text-gray-500 mt-1"></p>
                     </div>
                     <div class="flex gap-3">
+                        <button onclick="enableSound()" id="soundBtn" class="bg-purple-600 text-white px-4 py-2 rounded-lg">🔊 Enable Sound</button>
                         <button onclick="exportToCSV()" class="bg-green-600 text-white px-4 py-2 rounded-lg">📥 Export CSV</button>
                         <button onclick="refreshOrders()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">🔄 Refresh</button>
                         <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg">🚪 Logout</button>
@@ -64,22 +110,15 @@
             <!-- Delivery Slots Section -->
             <div id="slotsSection" style="display: none;">
                 <h2 class="text-2xl font-bold mb-6">⏰ Delivery Slot Management</h2>
-                <p class="text-sm text-gray-600 mb-4">Enable/disable slots based on order load. Slots are automatically disabled 1 hours before their start time.</p>
-                
+                <p class="text-sm text-gray-600 mb-4">Enable/disable slots based on order load.</p>
                 <div id="slotsList" class="space-y-4"></div>
-                
-                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-                    <h3 class="font-semibold text-blue-800 mb-2">📌 Auto-disable Rule</h3>
-                    <p class="text-sm text-blue-700">Any time slot will be automatically disabled 1 hours before its scheduled start time. For example:</p>
-                    <ul class="text-sm text-blue-700 mt-2 list-disc list-inside">
-                        <li>12 PM - 4 PM slot: Disabled after 10 AM</li>
-                        <li>4 PM - 8 PM slot: Disabled after 2 PM</li>
-                        <li>8 PM - 10 PM slot: Disabled after 6 PM</li>
-                    </ul>
-                </div>
             </div>
         </div>
     </div>
+    
+    <audio id="newOrderSound" preload="auto">
+        <source src="data:audio/wav;base64,U3RlYWx0aCBzb3VuZCBkYXRhIGZvciBuZXcgb3JkZXIgYWxlcnQ=" type="audio/wav">
+    </audio>
     
     <script>
         const API_BASE_URL = window.location.origin + '/api';
@@ -87,6 +126,102 @@
         let allOrders = [];
         let currentFilter = 'all';
         let currentTab = 'orders';
+        let previousOrderCount = 0;
+        let soundEnabled = false;
+        let audioContext = null;
+        let refreshInterval = null;
+        
+        // Create audio for new order alert
+        function playNewOrderSound() {
+            if (!soundEnabled) return;
+            
+            try {
+                // Create simple beep using Web Audio API
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                gainNode.gain.value = 0.3;
+                
+                oscillator.start();
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 1);
+                oscillator.stop(audioContext.currentTime + 1);
+                
+                // Resume audio context if suspended
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            } catch(e) {
+                console.log('Audio not supported');
+            }
+        }
+        
+        function enableSound() {
+            soundEnabled = true;
+            const btn = document.getElementById('soundBtn');
+            btn.textContent = '🔊 Sound On';
+            btn.classList.remove('bg-purple-600');
+            btn.classList.add('bg-green-600');
+            
+            // Initialize audio context on user gesture
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            playNewOrderSound(); // Test sound
+            alert('Sound enabled! You will hear alerts for new orders.');
+        }
+        
+        function checkForNewOrders(newOrders) {
+            if (newOrders > previousOrderCount && previousOrderCount > 0) {
+                const newCount = newOrders - previousOrderCount;
+                showNotification(newCount);
+                playNewOrderSound();
+                
+                // Flash the Orders tab
+                const ordersTab = document.getElementById('tabOrdersBtn');
+                ordersTab.style.backgroundColor = '#ffeb3b';
+                ordersTab.style.color = '#000';
+                setTimeout(() => {
+                    ordersTab.style.backgroundColor = '';
+                    ordersTab.style.color = '';
+                }, 2000);
+            }
+            previousOrderCount = newOrders;
+        }
+        
+        function showNotification(count) {
+            const badge = document.getElementById('notificationBadge');
+            const countSpan = document.getElementById('newOrderCount');
+            countSpan.textContent = count;
+            badge.classList.add('show');
+            
+            setTimeout(() => {
+                badge.classList.remove('show');
+            }, 8000);
+        }
+        
+        function scrollToNewOrder() {
+            const firstOrder = document.querySelector('.order-card:first-child');
+            if (firstOrder) {
+                firstOrder.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                firstOrder.classList.add('new-order-alert');
+                setTimeout(() => {
+                    firstOrder.classList.remove('new-order-alert');
+                }, 2000);
+            }
+            document.getElementById('notificationBadge').classList.remove('show');
+        }
         
         async function login() {
             const adminKey = document.getElementById('adminKey').value;
@@ -105,8 +240,11 @@
                     document.getElementById('loginSection').style.display = 'none';
                     document.getElementById('adminContent').style.display = 'block';
                     allOrders = data.orders || [];
+                    previousOrderCount = allOrders.length;
                     renderOrders();
                     loadSlots();
+                    if (refreshInterval) clearInterval(refreshInterval);
+                    refreshInterval = setInterval(autoRefresh, 10000);
                 } else {
                     errorDiv.innerText = data.error || 'Invalid admin key';
                     errorDiv.classList.remove('hidden');
@@ -114,6 +252,24 @@
             } catch(error) {
                 errorDiv.innerText = 'Connection error: ' + error.message;
                 errorDiv.classList.remove('hidden');
+            }
+        }
+        
+        async function autoRefresh() {
+            if (!currentAdminKey) return;
+            try {
+                const response = await fetch(API_BASE_URL + '/admin/orders?adminKey=' + currentAdminKey);
+                const data = await response.json();
+                if (data.success) {
+                    const newOrderCount = data.orders.length;
+                    checkForNewOrders(newOrderCount);
+                    allOrders = data.orders || [];
+                    if (currentTab === 'orders') {
+                        renderOrders();
+                    }
+                }
+            } catch(error) {
+                console.error('Auto refresh error:', error);
             }
         }
         
@@ -177,14 +333,6 @@
             
             let html = '';
             for (let slot of slots) {
-                const now = new Date();
-                const currentHour = now.getHours();
-                const currentMinutes = now.getMinutes();
-                const currentTimeInMinutes = (currentHour * 60) + currentMinutes;
-                const slotStartMinutes = slot.startHour * 60;
-                const cutoffTime = currentTimeInMinutes + (slot.cutoffHours * 60);
-                const isPastCutoff = slotStartMinutes <= cutoffTime;
-                
                 html += `
                     <div class="bg-white rounded-lg shadow-md overflow-hidden">
                         <div class="p-4 border-b">
@@ -192,8 +340,6 @@
                                 <div>
                                     <h3 class="font-bold text-lg">${slot.name}</h3>
                                     <p class="text-sm text-gray-600">Time: ${slot.time}</p>
-                                    <p class="text-xs text-gray-500">Cutoff: ${slot.cutoffHours} hours before start time</p>
-                                    ${isPastCutoff && slot.enabled ? '<p class="text-xs text-orange-500 mt-1">⚠️ Auto-disabled (past cutoff time)</p>' : ''}
                                 </div>
                                 <div class="flex items-center gap-3">
                                     <span class="px-3 py-1 rounded-full text-white text-sm ${slot.enabled ? 'slot-enabled' : 'slot-disabled'}">
@@ -206,9 +352,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="p-3 bg-gray-50 text-sm">
-                            📍 Customers can select this slot only if they place order before ${slot.startHour - slot.cutoffHours}:00
-                        </div>
                     </div>
                 `;
             }
@@ -216,6 +359,7 @@
         }
         
         function logout() {
+            if (refreshInterval) clearInterval(refreshInterval);
             currentAdminKey = null;
             document.getElementById('loginSection').style.display = 'block';
             document.getElementById('adminContent').style.display = 'none';
@@ -313,7 +457,7 @@
                 
                 html += `<div id="print-order-${order.orderId}" style="display:none;"><h2>Order #${order.orderId}</h2><p>Date: ${order.orderDate}</p><p>Customer: ${order.customerName}</p><p>Total: ₹${order.orderTotal}</p><table border="1"><tr><th>Product</th><th>Qty</th><th>Price</th></tr>${(order.items || []).map(item => `<tr><td>${item.name}</td><td>${item.quantity}</td><td>₹${item.price}</td></tr>`).join('')}</table></div>`;
                 
-                html += `<div class="bg-white rounded-lg shadow-md overflow-hidden mb-4">
+                html += `<div class="bg-white rounded-lg shadow-md overflow-hidden mb-4 order-card">
                     <div class="bg-gray-50 p-4 border-b">
                         <div class="flex justify-between items-start flex-wrap gap-3">
                             <div><h3 class="font-bold text-lg">📦 Order #${order.orderId}</h3>
@@ -328,7 +472,7 @@
                     <div><p class="text-sm text-gray-500">Mobile</p><p class="font-medium">${order.customerMobile || 'N/A'}</p></div></div></div>
                     <div class="p-4 border-b bg-gray-50"><h4 class="font-semibold">📍 Delivery Address</h4><p class="text-sm">${order.address || 'N/A'}</p></div>
                     <div class="p-4 border-b"><h4 class="font-semibold">📦 Items</h4><table class="w-full text-sm"><thead class="bg-gray-100"><tr><th class="p-2">Product</th><th class="p-2">Qty</th><th class="p-2">Price</th><th class="p-2">Total</th></tr></thead><tbody>
-                    ${(order.items || []).map(item => `<tr><td class="p-2">${item.name}</td><td class="p-2 text-center">${item.quantity}</td><td class="p-2 text-right">₹${item.price}</td><td class="p-2 text-right">₹${item.price * item.quantity}</td></tr>`).join('')}
+                    ${(order.items || []).map(item => `<tr class="border-b"><td class="p-2">${item.name}</td><td class="p-2 text-center">${item.quantity}</td><td class="p-2 text-right">₹${item.price}</td><td class="p-2 text-right">₹${item.price * item.quantity}</td></tr>`).join('')}
                     <tr class="bg-gray-50 font-bold"><td colspan="3" class="p-2 text-right">Grand Total:</td><td class="p-2 text-right text-amber-800">₹${order.orderTotal}</td></tr>
                     </tbody></table></div>
                     <div class="p-4"><div class="flex flex-wrap gap-4 items-center justify-between">
@@ -345,9 +489,6 @@
             }
             container.innerHTML = html;
         }
-        
-        setInterval(() => { if (currentAdminKey && currentTab === 'orders') refreshOrders(); }, 10000);
-        setInterval(() => { if (currentAdminKey && currentTab === 'slots') loadSlots(); }, 30000);
     </script>
 </body>
 </html>
