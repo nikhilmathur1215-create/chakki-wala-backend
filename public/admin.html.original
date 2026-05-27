@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chakki Wala - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f3f4f6; }
+        .order-card { transition: all 0.2s ease; cursor: pointer; }
+        .order-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        .tab-active { background-color: #803d0a !important; color: white !important; }
+        .tab-inactive { background-color: #e5e7eb !important; color: #4b5563 !important; }
+        .status-badge { padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+        .status-Confirmed { background: #dbeafe; color: #1e40af; }
+        .status-Processing { background: #fef3c7; color: #92400e; }
+        .status-Out-for-Delivery { background: #e9d5ff; color: #6b21a5; }
+        .status-Delivered { background: #d1fae5; color: #065f46; }
+        .status-Cancelled { background: #fee2e2; color: #991b1b; }
+        .notification-toast { position: fixed; top: 20px; right: 20px; background: #ef4444; color: white; padding: 12px 24px; border-radius: 12px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; align-items: center; gap: 10px; }
+        .address-card { background: #f8fafc; border-radius: 8px; padding: 10px; margin-top: 8px; border-left: 3px solid #803d0a; }
+        .export-note { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin-bottom: 16px; border-radius: 8px; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="notificationToast" class="notification-toast">
+        <span>🔔</span>
+        <span id="toastMessage">New order received!</span>
+    </div>
+
+    <div class="container mx-auto px-4 py-6">
+        <div id="adminHeader" style="display:none;">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-amber-800">🛍 Chakki Wala Admin</h1>
+                    <p class="text-gray-500 text-sm">Manage orders, track deliveries, export data with addresses</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="exportUsersCSV()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">👥 Export Users CSV (with Addresses)</button>
+                    <button onclick="exportOrdersCSV()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">📊 Export Orders CSV (with Addresses)</button>
+                    <button onclick="refreshData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">🔄 Refresh</button>
+                    <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">🚪 Logout</button>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Login Section -->
+        <div id="loginBox" class="bg-white rounded-2xl shadow-lg p-8 max-w-md mx-auto">
+            <div class="text-center mb-6">
+                <div class="text-5xl mb-3">🔐</div>
+                <h2 class="text-2xl font-bold">Admin Login</h2>
+                <p class="text-gray-500 text-sm mt-1">Enter your credentials to access dashboard</p>
+            </div>
+            <input type="password" id="adminPassword" placeholder="Enter Admin Password" class="w-full p-3 border rounded-xl mb-4" onkeypress="if(event.key==='Enter') login()">
+            <button onclick="login()" class="w-full bg-amber-800 text-white py-3 rounded-xl font-semibold">Login</button>
+            <div id="loginError" class="text-red-500 text-sm mt-3 text-center hidden"></div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" style="display:none;">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+                <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-blue-500"><p class="text-xs text-gray-500">Total Orders</p><p class="text-2xl font-bold" id="statTotal">0</p></div>
+                <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-blue-500"><p class="text-xs text-gray-500">Confirmed</p><p class="text-2xl font-bold text-blue-600" id="statConfirmed">0</p></div>
+                <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-yellow-500"><p class="text-xs text-gray-500">Processing</p><p class="text-2xl font-bold text-yellow-600" id="statProcessing">0</p></div>
+                <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-purple-500"><p class="text-xs text-gray-500">Out for Delivery</p><p class="text-2xl font-bold text-purple-600" id="statOut">0</p></div>
+                <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500"><p class="text-xs text-gray-500">Delivered</p><p class="text-2xl font-bold text-green-600" id="statDelivered">0</p></div>
+                <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-red-500"><p class="text-xs text-gray-500">Cancelled</p><p class="text-2xl font-bold text-red-600" id="statCancelled">0</p></div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="bg-white rounded-xl p-4 mb-6 shadow-sm">
+                <input type="text" id="searchInput" placeholder="Search by Order ID, Customer Name, Mobile Number, or Address..." class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+
+            <!-- Status Tabs -->
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button onclick="filterByStatus('all')" id="tab-all" class="tab-active px-5 py-2.5 rounded-full font-semibold text-sm transition-all">📋 All Orders</button>
+                <button onclick="filterByStatus('Confirmed')" id="tab-Confirmed" class="tab-inactive px-5 py-2.5 rounded-full font-semibold text-sm transition-all">✅ Confirmed</button>
+                <button onclick="filterByStatus('Processing')" id="tab-Processing" class="tab-inactive px-5 py-2.5 rounded-full font-semibold text-sm transition-all">⚙️ Processing</button>
+                <button onclick="filterByStatus('Out for Delivery')" id="tab-Out for Delivery" class="tab-inactive px-5 py-2.5 rounded-full font-semibold text-sm transition-all">🚚 Out for Delivery</button>
+                <button onclick="filterByStatus('Delivered')" id="tab-Delivered" class="tab-inactive px-5 py-2.5 rounded-full font-semibold text-sm transition-all">✅ Delivered</button>
+                <button onclick="filterByStatus('Cancelled')" id="tab-Cancelled" class="tab-inactive px-5 py-2.5 rounded-full font-semibold text-sm transition-all">❌ Cancelled</button>
+            </div>
+
+            <!-- Orders List -->
+            <div id="ordersList" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="orderModal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+                <h3 class="text-xl font-bold">Order Details</h3>
+                <button onclick="closeModal()" class="text-gray-500 text-2xl hover:text-gray-700">&times;</button>
+            </div>
+            <div id="modalContent" class="p-6"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let adminKey = null;
+        let allOrders = [];
+        let previousOrderCount = 0;
+        let currentStatus = 'all';
+
+        function formatAddress(address) {
+            if (!address) return 'N/A';
+            if (typeof address === 'string') return address;
+            if (address.fullAddress) return address.fullAddress;
+            if (address.addressLine1) {
+                let addr = address.addressLine1;
+                if (address.addressLine2) addr += ', ' + address.addressLine2;
+                if (address.city) addr += ', ' + address.city;
+                if (address.state) addr += ', ' + address.state;
+                if (address.pincode) addr += ' - ' + address.pincode;
+                return addr;
+            }
+            return JSON.stringify(address);
+        }
+
+        function getRecipientName(address) {
+            if (!address) return null;
+            if (address.recipientName) return address.recipientName;
+            return null;
+        }
+
+        function getRecipientMobile(address) {
+            if (!address) return null;
+            if (address.recipientMobile) return address.recipientMobile;
+            return null;
+        }
+
+        function getFullAddressDetails(address) {
+            if (!address) return null;
+            if (address.addressLine1) {
+                return {
+                    line1: address.addressLine1,
+                    line2: address.addressLine2 || '',
+                    city: address.city || '',
+                    state: address.state || '',
+                    pincode: address.pincode || '',
+                    landmark: address.landmark || ''
+                };
+            }
+            return null;
+        }
+
+        function playNotificationSound() {
+            try {
+                const context = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = context.createOscillator();
+                const gain = context.createGain();
+                oscillator.connect(gain);
+                gain.connect(context.destination);
+                oscillator.frequency.value = 880;
+                gain.gain.value = 0.3;
+                oscillator.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, context.currentTime + 1);
+                oscillator.stop(context.currentTime + 0.5);
+            } catch(e) { console.log('Audio not supported'); }
+        }
+
+        function showNotification(message) {
+            const toast = document.getElementById('notificationToast');
+            document.getElementById('toastMessage').innerText = message;
+            toast.style.display = 'flex';
+            setTimeout(() => { toast.style.display = 'none'; }, 5000);
+            playNotificationSound();
+        }
+
+        async function login() {
+            const password = document.getElementById('adminPassword').value;
+            if (password !== 'chakkiwala@2024') {
+                document.getElementById('loginError').innerText = 'Invalid password';
+                document.getElementById('loginError').classList.remove('hidden');
+                return;
+            }
+            adminKey = password;
+            document.getElementById('loginBox').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('adminHeader').style.display = 'block';
+            await loadOrders();
+            startAutoRefresh();
+        }
+
+        async function loadOrders() {
+            try {
+                const response = await fetch(`${API_URL}/admin/orders?adminKey=${adminKey}`);
+                const data = await response.json();
+                if (data.success) {
+                    const newOrderCount = data.orders?.length || 0;
+                    if (previousOrderCount > 0 && newOrderCount > previousOrderCount) {
+                        showNotification(`📦 New order received! Total orders: ${newOrderCount}`);
+                    }
+                    previousOrderCount = newOrderCount;
+                    allOrders = data.orders || [];
+                    updateStats();
+                    renderOrders();
+                }
+            } catch (error) {
+                console.error('Error loading orders:', error);
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('statTotal').innerText = allOrders.length;
+            document.getElementById('statConfirmed').innerText = allOrders.filter(o => o.orderStatus === 'Confirmed').length;
+            document.getElementById('statProcessing').innerText = allOrders.filter(o => o.orderStatus === 'Processing').length;
+            document.getElementById('statOut').innerText = allOrders.filter(o => o.orderStatus === 'Out for Delivery').length;
+            document.getElementById('statDelivered').innerText = allOrders.filter(o => o.orderStatus === 'Delivered').length;
+            document.getElementById('statCancelled').innerText = allOrders.filter(o => o.orderStatus === 'Cancelled').length;
+        }
+
+        function filterByStatus(status) {
+            currentStatus = status;
+            const tabs = ['all', 'Confirmed', 'Processing', 'Out for Delivery', 'Delivered', 'Cancelled'];
+            tabs.forEach(tab => {
+                const btn = document.getElementById(`tab-${tab === 'Out for Delivery' ? 'Out for Delivery' : tab}`);
+                if (btn) {
+                    if ((status === 'all' && tab === 'all') || status === tab) {
+                        btn.className = 'tab-active px-5 py-2.5 rounded-full font-semibold text-sm transition-all';
+                    } else {
+                        btn.className = 'tab-inactive px-5 py-2.5 rounded-full font-semibold text-sm transition-all';
+                    }
+                }
+            });
+            renderOrders();
+        }
+
+        function getFilteredOrders() {
+            let filtered = currentStatus === 'all' ? allOrders : allOrders.filter(o => o.orderStatus === currentStatus);
+            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            if (searchTerm) {
+                filtered = filtered.filter(o => 
+                    o.orderId.toLowerCase().includes(searchTerm) ||
+                    (o.customerName || '').toLowerCase().includes(searchTerm) ||
+                    (o.customerMobile || '').includes(searchTerm) ||
+                    formatAddress(o.address).toLowerCase().includes(searchTerm)
+                );
+            }
+            return filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
+
+        async function updateOrderStatus(orderId, newStatus) {
+            try {
+                const response = await fetch(`${API_URL}/admin/update-order-status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId, status: newStatus, adminKey })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    await loadOrders();
+                    showNotification(`Order ${orderId} updated to ${newStatus}`);
+                }
+            } catch (error) {
+                alert('Failed to update status');
+            }
+        }
+
+        function showOrderDetails(order) {
+            const modal = document.getElementById('orderModal');
+            const content = document.getElementById('modalContent');
+            
+            const itemsHtml = order.items?.map(item => `
+                <div class="flex justify-between items-center py-2 border-b">
+                    <div>
+                        <p class="font-medium">${item.name}</p>
+                        <p class="text-xs text-gray-500">${item.weight} × ${item.quantity}</p>
+                    </div>
+                    <span class="font-semibold">₹${item.price * item.quantity}</span>
+                </div>
+            `).join('') || '<p class="text-gray-500">No items</p>';
+
+            content.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-500">Order ID</p>
+                        <p class="font-mono font-bold text-lg">${order.orderId}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-xs text-gray-500">Customer</p>
+                            <p class="font-semibold">${order.customerName || 'N/A'}</p>
+                            <p class="text-sm text-gray-600">${order.customerMobile || 'N/A'}</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-xs text-gray-500">Order Date & Time</p>
+                            <p class="font-semibold">${order.orderDate || ''}</p>
+                            <p class="text-sm text-gray-600">${order.orderTime || ''}</p>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-500">Delivery Address</p>
+                        <p class="text-sm font-medium">${formatAddress(order.address)}</p>
+                        ${getRecipientName(order.address) ? `<p class="text-sm mt-1">👤 ${getRecipientName(order.address)}</p>` : ''}
+                        ${getRecipientMobile(order.address) ? `<p class="text-sm text-gray-600">📞 ${getRecipientMobile(order.address)}</p>` : ''}
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-500">Payment Method</p>
+                        <p class="font-semibold capitalize">${order.paymentMethod || 'COD'}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-500">Delivery Slot</p>
+                        <p class="font-semibold">${order.deliverySlot || 'Not selected'}</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold mb-2">Items Ordered</p>
+                        <div class="bg-gray-50 rounded-lg p-3">${itemsHtml}</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex justify-between py-1"><span class="text-gray-600">Subtotal:</span><span>₹${order.subtotal || 0}</span></div>
+                        <div class="flex justify-between py-1"><span class="text-gray-600">Delivery Fee:</span><span>${order.deliveryFee === 0 ? 'FREE' : `₹${order.deliveryFee || 0}`}</span></div>
+                        <div class="flex justify-between py-1"><span class="text-gray-600">GST (5%):</span><span>₹${order.gst || 0}</span></div>
+                        <div class="border-t pt-2 mt-2 flex justify-between font-bold">
+                            <span>Total:</span>
+                            <span class="text-amber-800 text-xl">₹${order.orderTotal}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('orderModal').classList.add('hidden');
+        }
+
+        async function exportUsersCSV() {
+            window.open(`${API_URL}/admin/export-users-csv?adminKey=${adminKey}`, '_blank');
+        }
+
+        async function exportOrdersCSV() {
+            window.open(`${API_URL}/export/csv?adminKey=${adminKey}`, '_blank');
+        }
+
+        async function refreshData() {
+            await loadOrders();
+        }
+
+        function startAutoRefresh() {
+            setInterval(async () => {
+                if (adminKey) {
+                    await loadOrders();
+                }
+            }, 10000);
+        }
+
+        function logout() {
+            adminKey = null;
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('adminHeader').style.display = 'none';
+            document.getElementById('loginBox').style.display = 'block';
+            document.getElementById('adminPassword').value = '';
+            previousOrderCount = 0;
+        }
+
+        function renderOrders() {
+            const container = document.getElementById('ordersList');
+            const filtered = getFilteredOrders();
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="text-center py-12 bg-white rounded-xl"><p class="text-gray-500">No orders found</p></div>';
+                return;
+            }
+
+            let html = '';
+            for (let order of filtered) {
+                const statusClass = `status-${order.orderStatus?.replace(/ /g, '-') || 'Confirmed'}`;
+                const statusSteps = ['Confirmed', 'Processing', 'Out for Delivery', 'Delivered'];
+                const currentStep = statusSteps.indexOf(order.orderStatus);
+                const isCancelled = order.orderStatus === 'Cancelled';
+                const formattedAddress = formatAddress(order.address);
+                const recipientName = getRecipientName(order.address);
+                const recipientMobile = getRecipientMobile(order.address);
+
+                html += `
+                    <div class="order-card bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div class="p-5">
+                            <div class="flex justify-between items-start mb-4 flex-wrap gap-3">
+                                <div>
+                                    <p class="text-xs text-gray-500">Order ID</p>
+                                    <p class="font-mono font-bold text-lg">${order.orderId}</p>
+                                </div>
+                                <div class="flex gap-2 flex-wrap">
+                                    <span class="status-badge ${statusClass}">${order.orderStatus || 'Confirmed'}</span>
+                                    <select onchange="updateOrderStatus('${order.orderId}', this.value)" class="px-3 py-1 rounded-lg text-sm border">
+                                        <option value="Confirmed" ${order.orderStatus === 'Confirmed' ? 'selected' : ''}>✅ Confirmed</option>
+                                        <option value="Processing" ${order.orderStatus === 'Processing' ? 'selected' : ''}>⚙️ Processing</option>
+                                        <option value="Out for Delivery" ${order.orderStatus === 'Out for Delivery' ? 'selected' : ''}>🚚 Out for Delivery</option>
+                                        <option value="Delivered" ${order.orderStatus === 'Delivered' ? 'selected' : ''}>✅ Delivered</option>
+                                        <option value="Cancelled" ${order.orderStatus === 'Cancelled' ? 'selected' : ''}>❌ Cancelled</option>
+                                    </select>
+                                    <button onclick='showOrderDetails(${JSON.stringify(order)})' class="px-3 py-1 rounded-lg text-sm bg-gray-100 hover:bg-gray-200">📋 Details</button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
+                                <div>
+                                    <p class="text-xs text-gray-500">Customer</p>
+                                    <p class="font-semibold">${order.customerName || 'N/A'}</p>
+                                    <p class="text-sm text-gray-600">📞 ${order.customerMobile || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Order Date</p>
+                                    <p class="font-semibold">${order.orderDate || 'N/A'}</p>
+                                    <p class="text-sm text-gray-600">⏰ ${order.orderTime || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Payment & Total</p>
+                                    <p class="font-semibold capitalize">💳 ${order.paymentMethod || 'COD'}</p>
+                                    <p class="text-lg font-bold text-amber-800">₹${order.orderTotal}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Delivery Slot</p>
+                                    <p class="font-semibold">⏰ ${order.deliverySlot || 'Not selected'}</p>
+                                </div>
+                            </div>
+
+                            <!-- Delivery Address Section - Full Details -->
+                            <div class="bg-blue-50 rounded-lg p-3 mb-4 border-l-4 border-amber-800">
+                                <p class="text-xs font-semibold text-amber-800 mb-1">📍 DELIVERY ADDRESS</p>
+                                <p class="text-sm font-medium text-gray-800">${formattedAddress}</p>
+                                ${recipientName ? `<p class="text-sm mt-1">👤 <span class="font-medium">${recipientName}</span></p>` : ''}
+                                ${recipientMobile ? `<p class="text-sm">📞 ${recipientMobile}</p>` : ''}
+                            </div>
+
+                            ${!isCancelled ? `
+                            <div class="relative mb-4 pt-4">
+                                <div class="absolute top-5 left-0 right-0 h-0.5 bg-gray-200"></div>
+                                <div class="flex justify-between relative z-10">
+                                    ${statusSteps.map((step, idx) => `
+                                        <div class="text-center flex-1">
+                                            <div class="w-8 h-8 mx-auto rounded-full flex items-center justify-center ${idx <= currentStep ? 'bg-amber-800 text-white' : 'bg-gray-200 text-gray-400'}">
+                                                ${idx === 0 ? '✓' : idx === 1 ? '⚙️' : idx === 2 ? '🚚' : '🏠'}
+                                            </div>
+                                            <p class="text-xs mt-1 ${idx <= currentStep ? 'font-semibold' : 'text-gray-400'}">${step === 'Out for Delivery' ? 'Out for Delivery' : step}</p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            ` : ''}
+
+                            <div class="flex flex-wrap gap-3 pt-3 border-t text-sm text-gray-500">
+                                <span>📦 ${order.items?.length || 0} items</span>
+                                ${order.deliveryNote ? `<span>📝 ${order.deliveryNote}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        document.getElementById('searchInput')?.addEventListener('input', () => renderOrders());
+    </script>
+</body>
+</html>

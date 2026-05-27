@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chakki Wala - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .status-Confirmed { background-color: #3b82f6; }
+        .status-Processing { background-color: #f59e0b; }
+        .status-OutforDelivery { background-color: #8b5cf6; }
+        .status-Delivered { background-color: #10b981; }
+        .status-Cancelled { background-color: #ef4444; }
+        .tab-active { background-color: #803d0a !important; color: white !important; }
+        .tab-inactive { background-color: #f3f4f6 !important; color: #6b7280 !important; }
+        .slot-enabled { background-color: #10b981 !important; }
+        .slot-disabled { background-color: #ef4444 !important; }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .new-order-alert {
+            animation: pulse 0.5s ease-in-out 3;
+            background-color: #ffeb3b !important;
+        }
+        .notification-badge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #ef4444;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        .notification-badge.show {
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-amber-800 mb-8">Chakki Wala - Admin Panel</h1>
+        
+        <div id="loginSection" class="bg-white rounded-lg shadow-md p-6 max-w-md mx-auto">
+            <h2 class="text-xl font-bold mb-4">Admin Login</h2>
+            <input type="password" id="adminKey" placeholder="Enter Admin Key" class="w-full p-3 border rounded-lg mb-4">
+            <button onclick="login()" class="w-full bg-amber-800 text-white py-3 rounded-lg font-semibold">Login</button>
+            <div id="loginError" class="text-red-500 text-sm mt-2 hidden"></div>
+        </div>
+        
+        <div id="adminContent" style="display: none;">
+            <!-- Notification Badge -->
+            <div id="notificationBadge" class="notification-badge" onclick="scrollToNewOrder()">
+                <span>🔔</span>
+                <span id="newOrderCount">0</span>
+                <span>new order(s)</span>
+            </div>
+            
+            <!-- Tab Navigation -->
+            <div class="flex border-b mb-6">
+                <button onclick="showTab('orders')" id="tabOrdersBtn" class="px-6 py-3 font-semibold text-primary border-b-2 border-primary">📦 Orders</button>
+                <button onclick="showTab('slots')" id="tabSlotsBtn" class="px-6 py-3 font-semibold text-gray-500">⏰ Delivery Slots</button>
+            </div>
+            
+            <!-- Orders Section -->
+            <div id="ordersSection">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold">Order Management</h2>
+                        <p id="orderCount" class="text-xs text-gray-500 mt-1"></p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="enableSound()" id="soundBtn" class="bg-purple-600 text-white px-4 py-2 rounded-lg">🔊 Enable Sound</button>
+                        <button onclick="exportToCSV()" class="bg-green-600 text-white px-4 py-2 rounded-lg">📥 Export CSV</button>
+                        <button onclick="refreshOrders()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">🔄 Refresh</button>
+                        <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg">🚪 Logout</button>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button id="tab-all" onclick="filterOrders('all')" class="tab-active px-5 py-2 rounded-full font-semibold transition-all">📋 All Orders</button>
+                    <button id="tab-Confirmed" onclick="filterOrders('Confirmed')" class="tab-inactive px-5 py-2 rounded-full font-semibold transition-all">✅ Confirmed</button>
+                    <button id="tab-Processing" onclick="filterOrders('Processing')" class="tab-inactive px-5 py-2 rounded-full font-semibold transition-all">⚙️ Processing</button>
+                    <button id="tab-OutforDelivery" onclick="filterOrders('Out for Delivery')" class="tab-inactive px-5 py-2 rounded-full font-semibold transition-all">🚚 Out for Delivery</button>
+                    <button id="tab-Delivered" onclick="filterOrders('Delivered')" class="tab-inactive px-5 py-2 rounded-full font-semibold transition-all">✅ Delivered</button>
+                    <button id="tab-Cancelled" onclick="filterOrders('Cancelled')" class="tab-inactive px-5 py-2 rounded-full font-semibold transition-all">❌ Cancelled</button>
+                </div>
+                
+                <div id="ordersList" class="space-y-4"></div>
+            </div>
+            
+            <!-- Delivery Slots Section -->
+            <div id="slotsSection" style="display: none;">
+                <h2 class="text-2xl font-bold mb-6">⏰ Delivery Slot Management</h2>
+                <p class="text-sm text-gray-600 mb-4">Enable/disable slots based on order load.</p>
+                <div id="slotsList" class="space-y-4"></div>
+            </div>
+        </div>
+    </div>
+    
+    <audio id="newOrderSound" preload="auto">
+        <source src="data:audio/wav;base64,U3RlYWx0aCBzb3VuZCBkYXRhIGZvciBuZXcgb3JkZXIgYWxlcnQ=" type="audio/wav">
+    </audio>
+    
+    <script>
+        const API_BASE_URL = window.location.origin + '/api';
+        let currentAdminKey = null;
+        let allOrders = [];
+        let currentFilter = 'all';
+        let currentTab = 'orders';
+        let previousOrderCount = 0;
+        let soundEnabled = false;
+        let audioContext = null;
+        let refreshInterval = null;
+        
+        // Create audio for new order alert
+        function playNewOrderSound() {
+            if (!soundEnabled) return;
+            
+            try {
+                // Create simple beep using Web Audio API
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                gainNode.gain.value = 0.3;
+                
+                oscillator.start();
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 1);
+                oscillator.stop(audioContext.currentTime + 1);
+                
+                // Resume audio context if suspended
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            } catch(e) {
+                console.log('Audio not supported');
+            }
+        }
+        
+        function enableSound() {
+            soundEnabled = true;
+            const btn = document.getElementById('soundBtn');
+            btn.textContent = '🔊 Sound On';
+            btn.classList.remove('bg-purple-600');
+            btn.classList.add('bg-green-600');
+            
+            // Initialize audio context on user gesture
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            playNewOrderSound(); // Test sound
+            alert('Sound enabled! You will hear alerts for new orders.');
+        }
+        
+        function checkForNewOrders(newOrders) {
+            if (newOrders > previousOrderCount && previousOrderCount > 0) {
+                const newCount = newOrders - previousOrderCount;
+                showNotification(newCount);
+                playNewOrderSound();
+                
+                // Flash the Orders tab
+                const ordersTab = document.getElementById('tabOrdersBtn');
+                ordersTab.style.backgroundColor = '#ffeb3b';
+                ordersTab.style.color = '#000';
+                setTimeout(() => {
+                    ordersTab.style.backgroundColor = '';
+                    ordersTab.style.color = '';
+                }, 2000);
+            }
+            previousOrderCount = newOrders;
+        }
+        
+        function showNotification(count) {
+            const badge = document.getElementById('notificationBadge');
+            const countSpan = document.getElementById('newOrderCount');
+            countSpan.textContent = count;
+            badge.classList.add('show');
+            
+            setTimeout(() => {
+                badge.classList.remove('show');
+            }, 8000);
+        }
+        
+        function scrollToNewOrder() {
+            const firstOrder = document.querySelector('.order-card:first-child');
+            if (firstOrder) {
+                firstOrder.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                firstOrder.classList.add('new-order-alert');
+                setTimeout(() => {
+                    firstOrder.classList.remove('new-order-alert');
+                }, 2000);
+            }
+            document.getElementById('notificationBadge').classList.remove('show');
+        }
+        
+        async function login() {
+            const adminKey = document.getElementById('adminKey').value;
+            const errorDiv = document.getElementById('loginError');
+            if (!adminKey) {
+                errorDiv.innerText = 'Please enter admin key';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            errorDiv.classList.add('hidden');
+            currentAdminKey = adminKey;
+            try {
+                const response = await fetch(API_BASE_URL + '/admin/orders?adminKey=' + adminKey);
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('adminContent').style.display = 'block';
+                    allOrders = data.orders || [];
+                    previousOrderCount = allOrders.length;
+                    renderOrders();
+                    loadSlots();
+                    if (refreshInterval) clearInterval(refreshInterval);
+                    refreshInterval = setInterval(autoRefresh, 10000);
+                } else {
+                    errorDiv.innerText = data.error || 'Invalid admin key';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch(error) {
+                errorDiv.innerText = 'Connection error: ' + error.message;
+                errorDiv.classList.remove('hidden');
+            }
+        }
+        
+        async function autoRefresh() {
+            if (!currentAdminKey) return;
+            try {
+                const response = await fetch(API_BASE_URL + '/admin/orders?adminKey=' + currentAdminKey);
+                const data = await response.json();
+                if (data.success) {
+                    const newOrderCount = data.orders.length;
+                    checkForNewOrders(newOrderCount);
+                    allOrders = data.orders || [];
+                    if (currentTab === 'orders') {
+                        renderOrders();
+                    }
+                }
+            } catch(error) {
+                console.error('Auto refresh error:', error);
+            }
+        }
+        
+        function showTab(tab) {
+            currentTab = tab;
+            const ordersSection = document.getElementById('ordersSection');
+            const slotsSection = document.getElementById('slotsSection');
+            const ordersBtn = document.getElementById('tabOrdersBtn');
+            const slotsBtn = document.getElementById('tabSlotsBtn');
+            
+            if (tab === 'orders') {
+                ordersSection.style.display = 'block';
+                slotsSection.style.display = 'none';
+                ordersBtn.className = 'px-6 py-3 font-semibold text-primary border-b-2 border-primary';
+                slotsBtn.className = 'px-6 py-3 font-semibold text-gray-500';
+                renderOrders();
+            } else {
+                ordersSection.style.display = 'none';
+                slotsSection.style.display = 'block';
+                ordersBtn.className = 'px-6 py-3 font-semibold text-gray-500';
+                slotsBtn.className = 'px-6 py-3 font-semibold text-primary border-b-2 border-primary';
+                loadSlots();
+            }
+        }
+        
+        async function loadSlots() {
+            try {
+                const response = await fetch(API_BASE_URL + '/admin/slots?adminKey=' + currentAdminKey);
+                const data = await response.json();
+                if (data.success) {
+                    renderSlots(data.slots);
+                }
+            } catch(error) {
+                console.error('Error loading slots:', error);
+            }
+        }
+        
+        async function updateSlotStatus(slotId, enabled) {
+            try {
+                const response = await fetch(API_BASE_URL + '/admin/update-slot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminKey: currentAdminKey, slotId, enabled })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert(`Slot ${enabled ? 'enabled' : 'disabled'} successfully!`);
+                    loadSlots();
+                }
+            } catch(error) {
+                alert('Error updating slot status');
+            }
+        }
+        
+        function renderSlots(slots) {
+            const container = document.getElementById('slotsList');
+            if (!slots || slots.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 bg-white rounded-lg">No slots configured</div>';
+                return;
+            }
+            
+            let html = '';
+            for (let slot of slots) {
+                html += `
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="p-4 border-b">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3 class="font-bold text-lg">${slot.name}</h3>
+                                    <p class="text-sm text-gray-600">Time: ${slot.time}</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="px-3 py-1 rounded-full text-white text-sm ${slot.enabled ? 'slot-enabled' : 'slot-disabled'}">
+                                        ${slot.enabled ? 'ENABLED' : 'DISABLED'}
+                                    </span>
+                                    <button onclick="updateSlotStatus('${slot.id}', ${!slot.enabled})" 
+                                        class="px-4 py-2 rounded-lg ${slot.enabled ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'} text-white transition">
+                                        ${slot.enabled ? 'Disable' : 'Enable'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+        
+        function logout() {
+            if (refreshInterval) clearInterval(refreshInterval);
+            currentAdminKey = null;
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('adminContent').style.display = 'none';
+            document.getElementById('adminKey').value = '';
+        }
+        
+        async function refreshOrders() {
+            if (!currentAdminKey) return;
+            try {
+                const response = await fetch(API_BASE_URL + '/admin/orders?adminKey=' + currentAdminKey);
+                const data = await response.json();
+                if (data.success) {
+                    allOrders = data.orders || [];
+                    renderOrders();
+                }
+            } catch(error) { console.error('Refresh error:', error); }
+        }
+        
+        function filterOrders(status) {
+            currentFilter = status;
+            const tabs = ['all', 'Confirmed', 'Processing', 'Out for Delivery', 'Delivered', 'Cancelled'];
+            for (let i = 0; i < tabs.length; i++) {
+                const tabId = 'tab-' + tabs[i].replace(/ /g, '');
+                const tabElement = document.getElementById(tabId);
+                if (tabElement) {
+                    if ((status === 'all' && tabs[i] === 'all') || (status === tabs[i])) {
+                        tabElement.className = 'tab-active px-5 py-2 rounded-full font-semibold transition-all';
+                    } else {
+                        tabElement.className = 'tab-inactive px-5 py-2 rounded-full font-semibold transition-all';
+                    }
+                }
+            }
+            renderOrders();
+        }
+        
+        function getFilteredOrders() {
+            if (currentFilter === 'all') return allOrders;
+            return allOrders.filter(order => order.orderStatus === currentFilter);
+        }
+        
+        function sortOrdersByDate(orders) {
+            return [...orders].sort((a, b) => {
+                const dateA = a.createdAt || a.orderDate;
+                const dateB = b.createdAt || b.orderDate;
+                if (dateA > dateB) return -1;
+                if (dateA < dateB) return 1;
+                return 0;
+            });
+        }
+        
+        async function updateStatus(orderId) {
+            const select = document.getElementById(`status-${orderId}`);
+            const newStatus = select.value;
+            try {
+                const response = await fetch(API_BASE_URL + '/admin/update-order-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId, status: newStatus, adminKey: currentAdminKey })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert(`✅ Order ${orderId} updated to ${newStatus}`);
+                    refreshOrders();
+                }
+            } catch(error) { alert('Error: ' + error.message); }
+        }
+        
+        function printOrder(orderId) {
+            const printContent = document.getElementById(`print-order-${orderId}`).innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`<html><head><title>Order ${orderId}</title><style>body{font-family:Arial;padding:20px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:left;}th{background:#f2f2f2;}</style></head><body>${printContent}</body></html>`);
+            printWindow.document.close();
+            printWindow.print();
+        }
+        
+        function exportToCSV() {
+            window.open(API_BASE_URL + '/export/csv?adminKey=' + currentAdminKey, '_blank');
+        }
+        
+        function renderOrders() {
+            const container = document.getElementById('ordersList');
+            const filtered = getFilteredOrders();
+            const sorted = sortOrdersByDate(filtered);
+            document.getElementById('orderCount').innerHTML = `📊 Total: ${allOrders.length} | 📋 Showing: ${sorted.length} ${currentFilter === 'all' ? 'orders' : currentFilter}`;
+            
+            if (!sorted || sorted.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 bg-white rounded-lg"><p class="text-gray-500">No orders found</p></div>`;
+                return;
+            }
+            
+            let html = '';
+            for (let i = 0; i < sorted.length; i++) {
+                const order = sorted[i];
+                const statusClass = 'status-' + (order.orderStatus || 'Confirmed').replace(/ /g, '');
+                
+                html += `<div id="print-order-${order.orderId}" style="display:none;"><h2>Order #${order.orderId}</h2><p>Date: ${order.orderDate}</p><p>Customer: ${order.customerName}</p><p>Total: ₹${order.orderTotal}</p><table border="1"><tr><th>Product</th><th>Qty</th><th>Price</th></tr>${(order.items || []).map(item => `<tr><td>${item.name}</td><td>${item.quantity}</td><td>₹${item.price}</td></tr>`).join('')}</table></div>`;
+                
+                html += `<div class="bg-white rounded-lg shadow-md overflow-hidden mb-4 order-card">
+                    <div class="bg-gray-50 p-4 border-b">
+                        <div class="flex justify-between items-start flex-wrap gap-3">
+                            <div><h3 class="font-bold text-lg">📦 Order #${order.orderId}</h3>
+                            <p class="text-sm text-gray-500">📅 ${order.orderDate} at ${order.orderTime}</p>
+                            <p class="text-sm text-gray-500">🚚 Delivery: ${order.deliverySlot || 'Not selected'}</p></div>
+                            <div class="text-right"><p class="font-bold text-amber-800 text-2xl">₹${order.orderTotal || 0}</p>
+                            <p class="text-sm text-gray-500">💳 ${order.paymentMethod || 'N/A'}</p></div>
+                        </div>
+                    </div>
+                    <div class="p-4 border-b"><h4 class="font-semibold">👤 Customer</h4>
+                    <div class="grid grid-cols-2 gap-4"><div><p class="text-sm text-gray-500">Name</p><p class="font-medium">${order.customerName || 'N/A'}</p></div>
+                    <div><p class="text-sm text-gray-500">Mobile</p><p class="font-medium">${order.customerMobile || 'N/A'}</p></div></div></div>
+                    <div class="p-4 border-b bg-gray-50"><h4 class="font-semibold">📍 Delivery Address</h4><p class="text-sm">${order.address || 'N/A'}</p></div>
+                    <div class="p-4 border-b"><h4 class="font-semibold">📦 Items</h4><table class="w-full text-sm"><thead class="bg-gray-100"><tr><th class="p-2">Product</th><th class="p-2">Qty</th><th class="p-2">Price</th><th class="p-2">Total</th></tr></thead><tbody>
+                    ${(order.items || []).map(item => `<tr class="border-b"><td class="p-2">${item.name}</td><td class="p-2 text-center">${item.quantity}</td><td class="p-2 text-right">₹${item.price}</td><td class="p-2 text-right">₹${item.price * item.quantity}</td></tr>`).join('')}
+                    <tr class="bg-gray-50 font-bold"><td colspan="3" class="p-2 text-right">Grand Total:</td><td class="p-2 text-right text-amber-800">₹${order.orderTotal}</td></tr>
+                    </tbody></table></div>
+                    <div class="p-4"><div class="flex flex-wrap gap-4 items-center justify-between">
+                    <div><p class="text-sm text-gray-500 mb-1">Status</p><span class="inline-block px-3 py-1 rounded-full text-white text-sm ${statusClass}">${order.orderStatus || 'Confirmed'}</span></div>
+                    <div class="flex-1 min-w-[200px]"><p class="text-sm text-gray-500 mb-1">Update Status</p>
+                    <div class="flex gap-2"><select id="status-${order.orderId}" class="p-2 border rounded-lg flex-1">
+                    <option value="Confirmed" ${order.orderStatus === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
+                    <option value="Processing" ${order.orderStatus === 'Processing' ? 'selected' : ''}>Processing</option>
+                    <option value="Out for Delivery" ${order.orderStatus === 'Out for Delivery' ? 'selected' : ''}>Out for Delivery</option>
+                    <option value="Delivered" ${order.orderStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                    <option value="Cancelled" ${order.orderStatus === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                    </select><button onclick="updateStatus('${order.orderId}')" class="bg-amber-800 text-white px-4 py-2 rounded-lg">Update</button>
+                    <button onclick="printOrder('${order.orderId}')" class="bg-blue-600 text-white px-4 py-2 rounded-lg">🖨️ Print</button></div></div></div></div></div>`;
+            }
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
