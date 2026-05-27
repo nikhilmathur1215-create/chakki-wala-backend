@@ -1,3 +1,9 @@
+// Force IPv4 resolution
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
+
+
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -31,12 +37,12 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 50 });
 
 // Database connection - Using Supabase PgBouncer (IPv4 compatible)
 const pool = new Pool({
-    host: process.env.PGHOST || 'aws-0-ap-south-1.pooler.supabase.com',
+    host: process.env.PGHOST || 'db.nltesaeadpjjoirpdwqa.supabase.co',
     port: parseInt(process.env.PGPORT || '6543'),
     database: process.env.PGDATABASE || 'postgres',
     user: process.env.PGUSER || 'postgres',
     password: process.env.PGPASSWORD,
-    ssl: { rejectUnauthorized: false },
+    ssl: false,  // Disable SSL - might help with IPv4
     max: 10,
     connectionTimeoutMillis: 10000,
 });
