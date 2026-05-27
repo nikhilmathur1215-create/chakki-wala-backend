@@ -29,17 +29,16 @@ const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500, message: { error
 app.use('/api/', limiter);
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 50 });
 
-// Database connection - Using individual parameters to avoid IPv6
+// Database connection - Using Supabase PgBouncer (IPv4 compatible)
 const pool = new Pool({
-    host: process.env.PGHOST || 'db.mmhigfqeovuzdnseqoli.supabase.co',
-    port: parseInt(process.env.PGPORT || '5432'),
+    host: process.env.PGHOST || 'aws-0-ap-south-1.pooler.supabase.com',
+    port: parseInt(process.env.PGPORT || '6543'),
     database: process.env.PGDATABASE || 'postgres',
     user: process.env.PGUSER || 'postgres',
     password: process.env.PGPASSWORD,
     ssl: { rejectUnauthorized: false },
     max: 10,
     connectionTimeoutMillis: 10000,
-    idleTimeoutMillis: 30000,
 });
 
 // Test connection
