@@ -112,8 +112,9 @@ app.get('/api/health', (req, res) => {
 });
 
 // ============================================
-// AUTH APIS
+// AUTH APIS - OTP VERIFICATION
 // ============================================
+
 app.post('/api/auth/send-otp', authLimiter, async (req, res) => {
     const { mobile } = req.body;
     if (!mobile || !/^\d{10}$/.test(mobile)) {
@@ -138,6 +139,7 @@ app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
     
     delete global.otpStore[mobile];
     
+    // Check if user exists in database
     let user = await pool.query('SELECT * FROM users WHERE mobile = $1', [mobile]);
     if (user.rows.length === 0) {
         const userId = `USR_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
@@ -145,17 +147,22 @@ app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
             'INSERT INTO users (user_id, mobile, registered_at, last_login_at) VALUES ($1, $2, NOW(), NOW())',
             [userId, mobile]
         );
-        user = { rows: [{ user_id: userId, mobile, name: null, email: null }] };
+        user = { rows: [{ user_id: userId, mobile, name: null, email: null, total_orders: 0 }] };
     } else {
         await pool.query('UPDATE users SET last_login_at = NOW() WHERE mobile = $1', [mobile]);
     }
     
     const token = generateToken(user.rows[0].user_id, mobile);
-    res.json({ success: true, token, user: { userId: user.rows[0].user_id, mobile: user.rows[0].mobile } });
-});
-
-app.post('/api/auth/logout', verifyToken, async (req, res) => {
-    res.json({ success: true });
+    res.json({ 
+        success: true, 
+        token, 
+        user: { 
+            userId: user.rows[0].user_id, 
+            mobile: user.rows[0].mobile,
+            name: user.rows[0].name,
+            email: user.rows[0].email
+        } 
+    });
 });
 
 // ============================================
