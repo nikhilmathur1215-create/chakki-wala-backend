@@ -1,5 +1,3 @@
-cd ~/Documents/chakki-wala-backend
-cat > server.js << 'EOF'
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -471,4 +469,3 @@ app.listen(PORT, () => {
     console.log(`🔧 Admin: http://localhost:${PORT}/admin`);
     console.log('==================================================');
 });
-EOF
