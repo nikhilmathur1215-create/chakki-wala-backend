@@ -1,16 +1,4 @@
 
-// Emergency CORS fix - at the very top
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'https://www.chakkiwalaa.com');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Auth-Token, X-Admin-Key');
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
-    next();
-});
-
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
