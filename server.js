@@ -32,9 +32,16 @@ app.options('*', cors());
 // Then add express.json()
 app.use(express.json());
 
-// Log all requests for debugging
+
+// EMERGENCY CORS FIX - Add this after express.json()
 app.use((req, res, next) => {
-    console.log(`${req.method} ${req.path}`);
+    res.header('Access-Control-Allow-Origin', 'https://www.chakkiwalaa.com');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Auth-Token, X-Admin-Key');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
     next();
 });
 // ============================================
