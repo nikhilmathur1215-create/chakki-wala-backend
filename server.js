@@ -1,6 +1,12 @@
 // Force IPv4 resolution
+// 1. FORCE IPv4 (This fixes the Render connection issue)
 const dns = require('dns');
 dns.setDefaultResultOrder('ipv4first');
+
+// 2. Your existing code starts here
+require('dotenv').config();
+const express = require('express');
+// ... rest of your imports
 
 
 
@@ -35,14 +41,14 @@ const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500, message: { error
 app.use('/api/', limiter);
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 50 });
 
-// Database connection - Using Supabase PgBouncer (IPv4 compatible)
+/// Database connection - Force IPv4 and SSL
 const pool = new Pool({
     host: process.env.PGHOST || 'db.nltesaeadpjjoirpdwqa.supabase.co',
-    port: parseInt(process.env.PGPORT || '6543'),
+    port: parseInt(process.env.PGPORT || '5432'),
     database: process.env.PGDATABASE || 'postgres',
     user: process.env.PGUSER || 'postgres',
     password: process.env.PGPASSWORD,
-    ssl: false,  // Disable SSL - might help with IPv4
+    ssl: { rejectUnauthorized: false }, // Keep SSL true
     max: 10,
     connectionTimeoutMillis: 10000,
 });
