@@ -25,9 +25,17 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Key', 'X-Auth-Token']
 }));
 
+// Handle preflight requests for ALL routes
 app.options('*', cors());
+
+// Then add express.json()
 app.use(express.json());
 
+// Log all requests for debugging
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`);
+    next();
+});
 // ============================================
 // RATE LIMITING
 // ============================================
