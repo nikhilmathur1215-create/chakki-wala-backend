@@ -1,4 +1,3 @@
-
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -17,6 +16,7 @@ app.use(cors({
     origin: [
         'http://localhost:3001',
         'http://localhost:3000',
+        'http://localhost:5173',
         'https://www.chakkiwalaa.com',
         'https://chakkiwalaa.com',
         'https://chakki-wala-frontend.vercel.app'
@@ -29,21 +29,8 @@ app.use(cors({
 // Handle preflight requests for ALL routes
 app.options('*', cors());
 
-// Then add express.json()
+// Parse JSON body
 app.use(express.json());
-
-
-// EMERGENCY CORS FIX - Add this after express.json()
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'https://www.chakkiwalaa.com');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Auth-Token, X-Admin-Key');
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
-    next();
-});
 // ============================================
 // RATE LIMITING
 // ============================================
@@ -112,10 +99,28 @@ function verifyAdmin(req, res, next) {
 }
 
 // ============================================
-// HEALTH CHECK
+// HEALTH CHECK - Used by keep-alive ping service
 // ============================================
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/health', async (req, res) => {
+    try {
+        await pool.query('SELECT 1'); // Check DB is alive too
+        res.status(200).json({ 
+            status: 'ok', 
+            timestamp: new Date().toISOString(),
+            uptime: Math.floor(process.uptime()) + 's'
+        });
+    } catch (err) {
+        res.status(500).json({ status: 'db_error', error: err.message });
+    }
+});
+
+app.get('/api/health', async (req, res) => {
+    try {
+        await pool.query('SELECT 1');
+        res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+    } catch (err) {
+        res.status(500).json({ status: 'db_error', error: err.message });
+    }
 });
 
 // ============================================
@@ -128,23 +133,36 @@ app.post('/api/auth/send-otp', authLimiter, async (req, res) => {
         return res.status(400).json({ error: 'Invalid mobile number' });
     }
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
     console.log(`📱 OTP for ${mobile}: ${otp}`);
     
-    if (!global.otpStore) global.otpStore = {};
-    global.otpStore[mobile] = { otp, expiresAt: Date.now() + 5 * 60 * 1000 };
+    // Store OTP in DB so it survives server restarts / cold starts
+    await pool.query(
+        `INSERT INTO otp_store (mobile, otp, expires_at) 
+         VALUES ($1, $2, $3) 
+         ON CONFLICT (mobile) DO UPDATE SET otp = $2, expires_at = $3`,
+        [mobile, otp, expiresAt]
+    );
     
     res.json({ success: true, testOtp: otp });
 });
 
 app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
     const { mobile, otp } = req.body;
-    const storedOtp = global.otpStore?.[mobile];
+
+    // Fetch OTP from DB
+    const otpResult = await pool.query(
+        'SELECT * FROM otp_store WHERE mobile = $1',
+        [mobile]
+    );
+    const storedOtp = otpResult.rows[0];
     
-    if (!storedOtp || storedOtp.otp !== otp || storedOtp.expiresAt < Date.now()) {
-        return res.status(400).json({ error: 'Invalid OTP' });
+    if (!storedOtp || storedOtp.otp !== otp || new Date(storedOtp.expires_at) < new Date()) {
+        return res.status(400).json({ error: 'Invalid or expired OTP' });
     }
     
-    delete global.otpStore[mobile];
+    // Delete used OTP
+    await pool.query('DELETE FROM otp_store WHERE mobile = $1', [mobile]);
     
     // Check if user exists in database
     let user = await pool.query('SELECT * FROM users WHERE mobile = $1', [mobile]);
