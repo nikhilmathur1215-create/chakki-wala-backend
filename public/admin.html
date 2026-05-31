@@ -468,12 +468,44 @@
 
         async function exportUsersCSV() {
             if (!adminKey) return;
-            window.open(`${API_URL}/admin/export-users-csv`, '_blank');
+            try {
+                const response = await fetch(`${API_URL}/admin/export-users-csv`, {
+                    headers: { 'X-Admin-Key': adminKey }
+                });
+                if (!response.ok) { alert('Export failed: ' + response.status); return; }
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `chakki-users-${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('Export error: ' + err.message);
+            }
         }
 
         async function exportOrdersCSV() {
             if (!adminKey) return;
-            window.open(`${API_URL}/export/csv`, '_blank');
+            try {
+                const response = await fetch(`${API_URL}/admin/export-orders-csv`, {
+                    headers: { 'X-Admin-Key': adminKey }
+                });
+                if (!response.ok) { alert('Export failed: ' + response.status); return; }
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `chakki-orders-${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('Export error: ' + err.message);
+            }
         }
 
         async function refreshData() {
