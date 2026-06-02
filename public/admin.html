@@ -351,7 +351,30 @@
                         </div>
                         
                         <div class="print-label-qr" id="${qrId}" style="text-align: center; margin: 6px 0;">
-                            <img src="/Images/QR-Sample.png" style="width: 30mm; height: 30mm;" alt="QR Code">
+                            <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
+              <p className="font-semibold text-gray-800 mb-1">Scan & Pay</p>
+              <p className="text-xs text-gray-500 mb-3">Scan using GPay, PhonePe, Paytm or any UPI app</p>
+              <div className="flex justify-center mb-3">
+                <div className="p-3 bg-white rounded-xl border-2 border-amber-300 inline-block">
+                  <QRCode
+                    value={upiLink}
+                    size={180}
+                    bgColor="#ffffff"
+                    fgColor="#873e23"
+                    level="H"
+                  />
+                </div>
+                
+              </div>
+              <p className="text-lg font-extrabold text-primary">₹{total?.toFixed(2) || 0}</p>
+              <p className="text-xs text-gray-500">UPI ID: {UPI_ID}</p>
+              <p className="text-xs text-gray-500 mt-2">Amount is pre-filled — just scan and pay!</p>
+              <div className="mt-3 p-2 bg-yellow-100 rounded-lg">
+                <p className="text-xs text-yellow-800 font-medium">⚠️ Complete UPI payment first, then click Confirm Order</p>
+              </div>
+            </div>
+          )}
+" style="width: 30mm; height: 30mm;" alt="QR Code">
                         </div>
                         
                         <div class="print-label-footer">
