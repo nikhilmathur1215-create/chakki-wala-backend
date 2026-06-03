@@ -146,7 +146,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://api.chakkiwalaa.com/api';
+        const API_URL = 'https://chakki-wala-backend-1.onrender.com/api';
         let adminKey = null;
         let allOrders = [];
         let previousOrderCount = 0;
@@ -350,37 +350,17 @@
                             </div>
                         </div>
                         
-                        <div class="print-label-qr" id="${qrId}" style="text-align: center; margin: 6px 0;">
-                            <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
-              <p className="font-semibold text-gray-800 mb-1">Scan & Pay</p>
-              <p className="text-xs text-gray-500 mb-3">Scan using GPay, PhonePe, Paytm or any UPI app</p>
-              <div className="flex justify-center mb-3">
-                <div className="p-3 bg-white rounded-xl border-2 border-amber-300 inline-block">
-                  <QRCode
-                    value={upiLink}
-                    size={180}
-                    bgColor="#ffffff"
-                    fgColor="#873e23"
-                    level="H"
-                  />
-                </div>
-                
-              </div>
-              <p className="text-lg font-extrabold text-primary">₹{total?.toFixed(2) || 0}</p>
-              <p className="text-xs text-gray-500">UPI ID: {UPI_ID}</p>
-              <p className="text-xs text-gray-500 mt-2">Amount is pre-filled — just scan and pay!</p>
-              <div className="mt-3 p-2 bg-yellow-100 rounded-lg">
-                <p className="text-xs text-yellow-800 font-medium">⚠️ Complete UPI payment first, then click Confirm Order</p>
-              </div>
-            </div>
-          )}
-" style="width: 30mm; height: 30mm;" alt="QR Code">
+                        <div style="text-align: center; margin: 6px 0;">
+                            <p style="font-size: 7px; font-weight: bold; margin-bottom: 2px;">📱 SCAN & PAY WITH UPI</p>
+                            <div id="${qrId}" style="display: inline-block; padding: 2px; background: white; border: 1px solid #803d0a;"></div>
+                            <p style="font-size: 6px; margin-top: 2px; color: #555;">UPI: 8800244169@upi</p>
+                            <p style="font-size: 8px; font-weight: bold; color: #803d0a;">Pay: ₹${finalTotal}</p>
                         </div>
                         
                         <div class="print-label-footer">
                             <p>Thank you for shopping at Chakki Walaa!</p>
                             <p>Freshness Guaranteed | Stone Ground Daily</p>
-                            <p>Scan QR to Payment</p>
+                            <p>Scan QR above to pay via GPay/PhonePe/Paytm</p>
                         </div>
                     </div>
                 </div>
@@ -411,6 +391,7 @@
                         .print-label-footer { text-align: center; font-size: 6px; margin-top: 6px; color: #666; border-top: 1px dotted #ccc; padding-top: 3px; }
                         .print-label-address { font-size: 7px; word-wrap: break-word; max-width: 52mm; }
                     </style>
+                    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script>
                 </head>
                 <body>
                     ${printContent}
@@ -418,6 +399,21 @@
                         <button onclick="window.print()" style="padding: 10px 20px; background: #803d0a; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">🖨️ Print Label</button>
                         <button onclick="window.close()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
                     </div>
+                    <script>
+                        // Generate dynamic UPI QR code
+                        const upiLink = 'upi://pay?pa=8800244169@upi&pn=Chakki%20Walaa&am=${finalTotal}&cu=INR&tn=Chakki%20Walaa%20Order%20Payment';
+                        const qrEl = document.getElementById('${qrId}');
+                        if (qrEl) {
+                            new QRCode(qrEl, {
+                                text: upiLink,
+                                width: 90,
+                                height: 90,
+                                colorDark: '#803d0a',
+                                colorLight: '#ffffff',
+                                correctLevel: QRCode.CorrectLevel.H
+                            });
+                        }
+                    <\/script>
                 </body>
                 </html>
             `);
