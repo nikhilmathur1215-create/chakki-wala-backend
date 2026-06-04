@@ -89,6 +89,7 @@
                 <div class="flex gap-3 flex-wrap">
                     <button onclick="exportUsersCSV()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">👥 Export Users CSV</button>
                     <button onclick="exportOrdersCSV()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">📊 Export Orders CSV</button>
+                    <button onclick="toggleSlotManager()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">⏰ Manage Slots</button>
                     <button onclick="refreshData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">🔄 Refresh</button>
                     <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">🚪 Logout</button>
                 </div>
@@ -132,6 +133,26 @@
             </div>
 
             <div id="ordersList" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <!-- Slot Manager Panel -->
+    <div id="slotManagerPanel" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl">
+            <div class="sticky top-0 bg-white border-b p-4 flex justify-between items-center rounded-t-2xl">
+                <div>
+                    <h3 class="text-xl font-bold">⏰ Delivery Slot Manager</h3>
+                    <p class="text-xs text-gray-500">Enable or disable slots for customers</p>
+                </div>
+                <button onclick="closeSlotManager()" class="text-gray-500 text-2xl hover:text-gray-700">&times;</button>
+            </div>
+            <div class="p-6">
+                <div id="slotsList" class="space-y-4"><div class="text-center py-4 text-gray-400">Loading slots...</div></div>
+                <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                    <p class="text-xs text-blue-700">ℹ️ Changes take effect immediately for all customers</p>
+                    <p class="text-xs text-blue-700 mt-1">⚠️ Morning slot also auto-disables after 6 PM</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -350,17 +371,14 @@
                             </div>
                         </div>
                         
-                        <div style="text-align: center; margin: 6px 0;">
-                            <p style="font-size: 7px; font-weight: bold; margin-bottom: 2px;">📱 SCAN & PAY WITH UPI</p>
-                            <div id="${qrId}" style="display: inline-block; padding: 2px; background: white; border: 1px solid #803d0a;"></div>
-                            <p style="font-size: 6px; margin-top: 2px; color: #555;">UPI: 8800244169@upi</p>
-                            <p style="font-size: 8px; font-weight: bold; color: #803d0a;">Pay: ₹${finalTotal}</p>
+                        <div class="print-label-qr" id="${qrId}" style="text-align: center; margin: 6px 0;">
+                            <img src="/Images/QR-Sample.png" style="width: 30mm; height: 30mm;" alt="QR Code">
                         </div>
                         
                         <div class="print-label-footer">
                             <p>Thank you for shopping at Chakki Walaa!</p>
                             <p>Freshness Guaranteed | Stone Ground Daily</p>
-                            <p>Scan QR above to pay via GPay/PhonePe/Paytm</p>
+                            <p>Scan QR to Payment</p>
                         </div>
                     </div>
                 </div>
@@ -391,7 +409,6 @@
                         .print-label-footer { text-align: center; font-size: 6px; margin-top: 6px; color: #666; border-top: 1px dotted #ccc; padding-top: 3px; }
                         .print-label-address { font-size: 7px; word-wrap: break-word; max-width: 52mm; }
                     </style>
-                    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script>
                 </head>
                 <body>
                     ${printContent}
@@ -399,21 +416,6 @@
                         <button onclick="window.print()" style="padding: 10px 20px; background: #803d0a; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">🖨️ Print Label</button>
                         <button onclick="window.close()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
                     </div>
-                    <script>
-                        // Generate dynamic UPI QR code
-                        const upiLink = 'upi://pay?pa=8800244169@upi&pn=Chakki%20Walaa&am=${finalTotal}&cu=INR&tn=Chakki%20Walaa%20Order%20Payment';
-                        const qrEl = document.getElementById('${qrId}');
-                        if (qrEl) {
-                            new QRCode(qrEl, {
-                                text: upiLink,
-                                width: 90,
-                                height: 90,
-                                colorDark: '#803d0a',
-                                colorLight: '#ffffff',
-                                correctLevel: QRCode.CorrectLevel.H
-                            });
-                        }
-                    <\/script>
                 </body>
                 </html>
             `);
@@ -633,6 +635,85 @@
         }
 
         document.getElementById('searchInput')?.addEventListener('input', () => renderOrders());
+
+        // ============================================
+        // SLOT MANAGEMENT FUNCTIONS
+        // ============================================
+        async function toggleSlotManager() {
+            document.getElementById('slotManagerPanel').classList.remove('hidden');
+            await loadSlots();
+        }
+
+        function closeSlotManager() {
+            document.getElementById('slotManagerPanel').classList.add('hidden');
+        }
+
+        async function loadSlots() {
+            if (!adminKey) return;
+            try {
+                const response = await fetch(`${API_URL}/admin/slots`, {
+                    headers: { 'X-Admin-Key': adminKey }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    renderSlots(data.slots);
+                } else {
+                    document.getElementById('slotsList').innerHTML = '<p class="text-red-500 text-sm">Failed to load slots</p>';
+                }
+            } catch (error) {
+                document.getElementById('slotsList').innerHTML = '<p class="text-red-500 text-sm">Error: ' + error.message + '</p>';
+            }
+        }
+
+        function renderSlots(slots) {
+            const slotIcons = { morning: '🌅', evening: '🌆', night: '🌙' };
+            const container = document.getElementById('slotsList');
+            container.innerHTML = slots.map(slot => `
+                <div class="flex items-center justify-between p-4 border-2 rounded-xl ${slot.is_active ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">${slotIcons[slot.slot_key] || '⏰'}</span>
+                        <div>
+                            <p class="font-bold text-gray-800">${slot.slot_name}</p>
+                            <p class="text-sm text-gray-500">${slot.slot_time}</p>
+                            <p class="text-xs mt-1 font-semibold ${slot.is_active ? 'text-green-600' : 'text-red-500'}">
+                                ${slot.is_active ? '✅ Active - Customers can select this slot' : '❌ Disabled - Hidden from customers'}
+                            </p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" 
+                            ${slot.is_active ? 'checked' : ''} 
+                            onchange="toggleSlot('${slot.slot_key}', this.checked)"
+                            class="sr-only peer">
+                        <div class="w-14 h-7 bg-red-400 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-7 after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-500"></div>
+                    </label>
+                </div>
+            `).join('');
+        }
+
+        async function toggleSlot(slotKey, isActive) {
+            try {
+                const response = await fetch(`${API_URL}/admin/slots/toggle`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Admin-Key': adminKey 
+                    },
+                    body: JSON.stringify({ slotKey, isActive })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showNotification(`Slot ${isActive ? 'enabled ✅' : 'disabled ❌'} successfully`);
+                    await loadSlots();
+                } else {
+                    alert('Failed to update slot');
+                    await loadSlots();
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+                await loadSlots();
+            }
+        }
     </script>
 </body>
 </html>
