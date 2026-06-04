@@ -1,4 +1,4 @@
-Admin panel all are working <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -371,9 +371,12 @@ Admin panel all are working <!DOCTYPE html>
                             </div>
                         </div>
                         
-                        <div class="print-label-qr" id="${qrId}" style="text-align: center; margin: 6px 0;">
-                            <img src="/Images/QR-Sample.png" style="width: 30mm; height: 30mm;" alt="QR Code">
-                        </div>
+                        <div style="text-align: center; margin: 6px 0;">
+    <p style="font-size: 7px; font-weight: bold; margin-bottom: 2px;">📱 SCAN & PAY WITH UPI</p>
+    <div id="${qrId}" style="display: inline-block; padding: 2px; background: white; border: 1px solid #803d0a;"></div>
+    <p style="font-size: 6px; margin-top: 1px; color: #555;">UPI: 8800244169@upi</p>
+    <p style="font-size: 8px; font-weight: bold; color: #803d0a;">Pay: ₹${finalTotal}</p>
+</div>
                         
                         <div class="print-label-footer">
                             <p>Thank you for shopping at Chakki Walaa!</p>
