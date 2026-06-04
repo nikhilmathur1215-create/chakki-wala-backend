@@ -317,21 +317,6 @@ app.post('/api/cart/sync', verifyToken, async (req, res) => {
     res.json({ success: true });
 });
 
-// ============================================
-// DELIVERY SLOTS
-// ============================================
-app.get('/api/delivery-slots', (req, res) => {
-    const isAfter6PM = new Date().getHours() >= 18;
-    res.json({
-        success: true,
-        slots: [
-            { id: 'morning', name: 'Morning', time: '12:00 PM - 04:00 PM', isAvailable: !isAfter6PM },
-            { id: 'evening', name: 'Evening', time: '04:00 PM - 08:00 PM', isAvailable: true },
-            { id: 'night', name: 'Night', time: '08:00 PM - 10:00 PM', isAvailable: true }
-        ],
-        isAfter6PM
-    });
-});
 
 // ============================================
 // ORDER APIS
