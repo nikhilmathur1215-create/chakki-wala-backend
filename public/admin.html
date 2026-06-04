@@ -415,32 +415,12 @@
                 </head>
                 <body>
                     ${printContent}
-                  <div class="no-print" style="text-align: center; margin-top: 20px;">
-    <button onclick="window.print()" style="padding: 10px 20px; background: #803d0a; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">🖨️ Print Label</button>
-    <button onclick="window.close()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<script>
-    function generateQR() {
-        const upiLink = "upi://pay?pa=8800244169@upi&pn=Chakki%20Walaa&am=${finalTotal}&cu=INR&tn=Chakki%20Walaa%20Order%20Payment";
-        const qrEl = document.getElementById("${qrId}");
-        if (qrEl && typeof QRCode !== "undefined") {
-            new QRCode(qrEl, {
-                text: upiLink,
-                width: 110,
-                height: 110,
-                colorDark: "#803d0a",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-        } else {
-            setTimeout(generateQR, 300);
-        }
-    }
-    setTimeout(generateQR, 500);
-</script>
-</body>
-</html>
+                    <div class="no-print" style="text-align: center; margin-top: 20px;">
+                        <button onclick="window.print()" style="padding: 10px 20px; background: #803d0a; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">🖨️ Print Label</button>
+                        <button onclick="window.close()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
+                    </div>
+                </body>
+                </html>
             `);
             printWindow.document.close();
         }
