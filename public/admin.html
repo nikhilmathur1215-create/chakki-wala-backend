@@ -371,26 +371,9 @@ Admin panel all are working <!DOCTYPE html>
                             </div>
                         </div>
                         
-                        <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<script>
-    function generateQR() {
-        const upiLink = "upi://pay?pa=8800244169@upi&pn=Chakki%20Walaa&am=${finalTotal}&cu=INR&tn=Chakki%20Walaa%20Order%20Payment";
-        const qrEl = document.getElementById("${qrId}");
-        if (qrEl && typeof QRCode !== "undefined") {
-            new QRCode(qrEl, {
-                text: upiLink,
-                width: 110,
-                height: 110,
-                colorDark: "#803d0a",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-        } else {
-            setTimeout(generateQR, 300);
-        }
-    }
-    setTimeout(generateQR, 500);
-</script>
+                        <div class="print-label-qr" id="${qrId}" style="text-align: center; margin: 6px 0;">
+                            <img src="/Images/QR-Sample.png" style="width: 30mm; height: 30mm;" alt="QR Code">
+                        </div>
                         
                         <div class="print-label-footer">
                             <p>Thank you for shopping at Chakki Walaa!</p>
