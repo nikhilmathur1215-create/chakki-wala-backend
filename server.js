@@ -490,6 +490,38 @@ app.get('/api/export/csv', verifyAdmin, async (req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename=orders.csv');
     res.send(csv);
 });
+// DELIVERY SLOTS - Read from DB
+app.get('/api/delivery-slots', async (req, res) => {
+    try {
+        const isAfter6PM = new Date().getHours() >= 18;
+        const slotsResult = await pool.query('SELECT * FROM delivery_slots ORDER BY id ASC');
+        const slots = slotsResult.rows.map(slot => ({
+            id: slot.slot_key,
+            name: slot.slot_name,
+            time: slot.slot_time,
+            isAvailable: slot.is_active && !(slot.slot_key === 'morning' && isAfter6PM)
+        }));
+        res.json({ success: true, slots, isAfter6PM });
+    } catch (error) {
+        const isAfter6PM = new Date().getHours() >= 18;
+        res.json({ success: true, slots: [
+            { id: 'morning', name: 'Morning', time: '12:00 PM - 04:00 PM', isAvailable: !isAfter6PM },
+            { id: 'evening', name: 'Evening', time: '04:00 PM - 08:00 PM', isAvailable: true },
+            { id: 'night', name: 'Night', time: '08:00 PM - 10:00 PM', isAvailable: true }
+        ], isAfter6PM });
+    }
+});
+
+app.get('/api/admin/slots', verifyAdmin, async (req, res) => {
+    const slots = await pool.query('SELECT * FROM delivery_slots ORDER BY id ASC');
+    res.json({ success: true, slots: slots.rows });
+});
+
+app.post('/api/admin/slots/toggle', verifyAdmin, async (req, res) => {
+    const { slotKey, isActive } = req.body;
+    await pool.query('UPDATE delivery_slots SET is_active = $1 WHERE slot_key = $2', [isActive, slotKey]);
+    res.json({ success: true });
+});
 
 // ============================================
 // STATIC FILES & ADMIN PANEL
