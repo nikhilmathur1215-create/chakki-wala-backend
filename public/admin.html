@@ -387,27 +387,35 @@
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
                 <!DOCTYPE html>
-                 </head>
+                <html>
+                <head>
+                    <title>Print Label - ${order.order_id}</title>
+                    <style>
+                        @media print { body { margin: 0; padding: 0; } .no-print { display: none; } }
+                        body { font-family: 'Courier New', monospace; margin: 0; padding: 0; background: #f0f0f0; }
+                        .print-label-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                        .print-label { width: 56mm; max-width: 56mm; background: white; font-family: 'Courier New', monospace; font-size: 9px; padding: 2mm; margin: 0 auto; line-height: 1.25; }
+                        .print-label-header { text-align: center; border-bottom: 1px dashed #803d0a; padding-bottom: 3px; margin-bottom: 5px; }
+                        .print-label-header h3 { font-size: 12px; font-weight: bold; margin: 2px 0; color: #803d0a; }
+                        .print-label-header p { font-size: 7px; margin: 2px 0 0; }
+                        .print-label-section { margin-bottom: 6px; border-bottom: 1px dotted #ccc; padding-bottom: 4px; }
+                        .print-label-section-title { font-weight: bold; font-size: 8px; background: #f3f4f6; padding: 1px 3px; margin-bottom: 3px; }
+                        .print-label-row { display: flex; justify-content: space-between; margin-bottom: 2px; font-size: 8px; }
+                        .print-label-item-row { display: flex; justify-content: space-between; font-size: 8px; margin-bottom: 2px; }
+                        .print-label-price-row { display: flex; justify-content: space-between; font-size: 8px; margin-bottom: 2px; }
+                        .print-label-price-total { border-top: 1px dotted #ccc; margin-top: 4px; padding-top: 4px; font-weight: bold; font-size: 10px; }
+                        .print-label-qr { text-align: center; margin: 6px 0; }
+                        .print-label-qr img { width: 30mm !important; height: 30mm !important; }
+                        .print-label-footer { text-align: center; font-size: 6px; margin-top: 6px; color: #666; border-top: 1px dotted #ccc; padding-top: 3px; }
+                        .print-label-address { font-size: 7px; word-wrap: break-word; max-width: 52mm; }
+                    </style>
+                </head>
                 <body>
                     ${printContent}
                     <div class="no-print" style="text-align: center; margin-top: 20px;">
                         <button onclick="window.print()" style="padding: 10px 20px; background: #803d0a; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">🖨️ Print Label</button>
                         <button onclick="window.close()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
                     </div>
-                    <script>
-                        const upiLink = 'upi://pay?pa=8800244169@upi&pn=Chakki%20Walaa&am=${finalTotal}&cu=INR&tn=Chakki%20Walaa%20Order%20Payment';
-                        const qrEl = document.getElementById('${qrId}');
-                        if (qrEl) {
-                            new QRCode(qrEl, {
-                                text: upiLink,
-                                width: 90,
-                                height: 90,
-                                colorDark: '#803d0a',
-                                colorLight: '#ffffff',
-                                correctLevel: QRCode.CorrectLevel.H
-                            });
-                        }
-                    <\/script>
                 </body>
                 </html>
             `);
@@ -627,6 +635,85 @@
         }
 
         document.getElementById('searchInput')?.addEventListener('input', () => renderOrders());
+
+        // ============================================
+        // SLOT MANAGEMENT FUNCTIONS
+        // ============================================
+        async function toggleSlotManager() {
+            document.getElementById('slotManagerPanel').classList.remove('hidden');
+            await loadSlots();
+        }
+
+        function closeSlotManager() {
+            document.getElementById('slotManagerPanel').classList.add('hidden');
+        }
+
+        async function loadSlots() {
+            if (!adminKey) return;
+            try {
+                const response = await fetch(`${API_URL}/admin/slots`, {
+                    headers: { 'X-Admin-Key': adminKey }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    renderSlots(data.slots);
+                } else {
+                    document.getElementById('slotsList').innerHTML = '<p class="text-red-500 text-sm">Failed to load slots</p>';
+                }
+            } catch (error) {
+                document.getElementById('slotsList').innerHTML = '<p class="text-red-500 text-sm">Error: ' + error.message + '</p>';
+            }
+        }
+
+        function renderSlots(slots) {
+            const slotIcons = { morning: '🌅', evening: '🌆', night: '🌙' };
+            const container = document.getElementById('slotsList');
+            container.innerHTML = slots.map(slot => `
+                <div class="flex items-center justify-between p-4 border-2 rounded-xl ${slot.is_active ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">${slotIcons[slot.slot_key] || '⏰'}</span>
+                        <div>
+                            <p class="font-bold text-gray-800">${slot.slot_name}</p>
+                            <p class="text-sm text-gray-500">${slot.slot_time}</p>
+                            <p class="text-xs mt-1 font-semibold ${slot.is_active ? 'text-green-600' : 'text-red-500'}">
+                                ${slot.is_active ? '✅ Active - Customers can select this slot' : '❌ Disabled - Hidden from customers'}
+                            </p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" 
+                            ${slot.is_active ? 'checked' : ''} 
+                            onchange="toggleSlot('${slot.slot_key}', this.checked)"
+                            class="sr-only peer">
+                        <div class="w-14 h-7 bg-red-400 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-7 after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-500"></div>
+                    </label>
+                </div>
+            `).join('');
+        }
+
+        async function toggleSlot(slotKey, isActive) {
+            try {
+                const response = await fetch(`${API_URL}/admin/slots/toggle`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Admin-Key': adminKey 
+                    },
+                    body: JSON.stringify({ slotKey, isActive })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showNotification(`Slot ${isActive ? 'enabled ✅' : 'disabled ❌'} successfully`);
+                    await loadSlots();
+                } else {
+                    alert('Failed to update slot');
+                    await loadSlots();
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+                await loadSlots();
+            }
+        }
     </script>
 </body>
 </html>
