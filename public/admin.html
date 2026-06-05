@@ -322,7 +322,8 @@
             const qrId = 'qr_' + order.order_id.replace(/[^a-zA-Z0-9]/g, '_');
             
             const printContent = `
-                <div class="print-label-container" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f0f0f0; padding: 5mm;">
+    <div class="print-label-container">
+        <div class="print-label">
                     <div class="print-label">
                         <div class="print-label-header">
                             <img src="/Images/Logo.png" alt="Chakki Walaa" style="max-height: 25px; margin-bottom: 3px; display: block; margin-left: auto; margin-right: auto;" onerror="this.style.display='none'">
@@ -731,7 +732,7 @@
                 } else {
                     alert('Failed to update slot');
                     await loadSlots();
-                }
+                } 
             } catch (error) {
                 alert('Error: ' + error.message);
                 await loadSlots();
