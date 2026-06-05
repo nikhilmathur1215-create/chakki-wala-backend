@@ -395,7 +395,14 @@
                 <head>
                     <title>Print Label - ${order.order_id}</title>
                     <style>
-                        @media print { body { margin: 0; padding: 0; } .no-print { display: none; } }
+                        @media print { 
+    body { margin: 0; padding: 0; } 
+    .no-print { display: none; }
+    @page { 
+        margin: 0;
+        size: auto;
+    }
+}
                         body { font-family: 'Courier New', monospace; margin: 0; padding: 0; background: #f0f0f0; }
                         .print-label-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
                         .print-label { width: 56mm; max-width: 56mm; background: white; font-family: 'Courier New', monospace; font-size: 9px; padding: 2mm; margin: 0 auto; line-height: 1.25; }
