@@ -136,11 +136,7 @@ app.post('/api/auth/send-otp', authLimiter, async (req, res) => {
     console.log(`📱 OTP for ${mobile}: ${otp}`);
     
     // Store OTP in DB so it survives server restarts / cold starts
-    await pool.query(
-        `INSERT INTO otp_store (mobile, otp, expires_at) 
-         VALUES ($1, $2, $3) 
-         ON CONFLICT (mobile) DO UPDATE SET otp = $2, expires_at = $3`,
-        [mobile, otp, expiresAt]
+    await pool.query( INSERT INTO otp_store (mobile, otp, expires_at) VALUES ($1, $2, $3) ON CONFLICT (mobile) DO UPDATE SET otp = $2, expires_at = $3, [mobile, otp, expiresAt] );
     );
     
     res.json({ success: true, testOtp: otp });
