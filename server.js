@@ -103,10 +103,11 @@ function verifyAdmin(req, res, next) {
 // ============================================
 app.get('/health', async (req, res) => {
     try {
-       if (response.success && response.testOtp) {
-    const otpDigits = response.testOtp.split('');
-    setOtp(otpDigits);
-    setTimeout(() => inputs.current[5]?.focus(), 100);
+        await pool.query('SELECT 1'); // Check DB is alive too
+        res.status(200).json({ 
+            status: 'ok', 
+            timestamp: new Date().toISOString(),
+            uptime: Math.floor(process.uptime()) + 's'
         });
     } catch (err) {
         res.status(500).json({ status: 'db_error', error: err.message });
@@ -136,7 +137,11 @@ app.post('/api/auth/send-otp', authLimiter, async (req, res) => {
     console.log(`📱 OTP for ${mobile}: ${otp}`);
     
     // Store OTP in DB so it survives server restarts / cold starts
-    await pool.query( INSERT INTO otp_store (mobile, otp, expires_at) VALUES ($1, $2, $3) ON CONFLICT (mobile) DO UPDATE SET otp = $2, expires_at = $3, [mobile, otp, expiresAt] );
+    await pool.query(
+        `INSERT INTO otp_store (mobile, otp, expires_at) 
+         VALUES ($1, $2, $3) 
+         ON CONFLICT (mobile) DO UPDATE SET otp = $2, expires_at = $3`,
+        [mobile, otp, expiresAt]
     );
     
     res.json({ success: true, testOtp: otp });
