@@ -103,11 +103,10 @@ function verifyAdmin(req, res, next) {
 // ============================================
 app.get('/health', async (req, res) => {
     try {
-        await pool.query('SELECT 1'); // Check DB is alive too
-        res.status(200).json({ 
-            status: 'ok', 
-            timestamp: new Date().toISOString(),
-            uptime: Math.floor(process.uptime()) + 's'
+       if (response.success && response.testOtp) {
+    const otpDigits = response.testOtp.split('');
+    setOtp(otpDigits);
+    setTimeout(() => inputs.current[5]?.focus(), 100);
         });
     } catch (err) {
         res.status(500).json({ status: 'db_error', error: err.message });
