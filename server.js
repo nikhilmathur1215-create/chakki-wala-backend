@@ -527,3 +527,35 @@ app.listen(PORT, () => {
     console.log(`🔧 Admin: http://localhost:${PORT}/admin`);
     console.log('==================================================');
 });
+
+
+// ============================================
+// PRODUCTION PANEL APIS
+// ============================================
+function verifyProduction(req, res, next) {
+    const key = req.headers['x-production-key'];
+    if (!key || key !== process.env.PRODUCTION_KEY) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    next();
+}
+
+app.get('/api/production/orders', verifyProduction, async (req, res) => {
+    const orders = await pool.query(
+        `SELECT o.*, COALESCE(json_agg(oi.*) FILTER (WHERE oi.id IS NOT NULL), '[]') as items FROM orders o LEFT JOIN order_items oi ON o.order_id = oi.order_id WHERE o.order_status IN ('Processing', 'Process Started', 'Ready for Delivery') GROUP BY o.order_id ORDER BY o.created_at ASC`
+    );
+    res.json({ success: true, orders: orders.rows });
+});
+
+app.post('/api/production/update-status', verifyProduction, async (req, res) => {
+    const { orderId, status } = req.body;
+    if (!['Process Started', 'Ready for Delivery'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status' });
+    }
+    await pool.query('UPDATE orders SET order_status = $1 WHERE order_id = $2', [status, orderId]);
+    res.json({ success: true });
+});
+
+app.get('/production', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'production.html'));
+});

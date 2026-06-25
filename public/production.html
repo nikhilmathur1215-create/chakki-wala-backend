@@ -82,7 +82,11 @@
             <button onclick="filterOrders('Ready for Delivery')" id="tab-Ready-for-Delivery" class="bg-gray-200 text-gray-600 px-4 py-2 rounded-full text-sm font-semibold">✅ Ready</button>
         </div>
 
-        <div id="ordersList" class="space-y-4"></div>
+        <div class="bg-white rounded-xl p-4 mb-6 shadow-sm">
+    <input type="text" id="searchInput" placeholder="Search by Order ID, Customer Name, or Mobile Number..." class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+</div>
+
+<div id="ordersList" class="space-y-4"></div>
     </div>
 </div>
 
@@ -180,7 +184,13 @@
 
     function renderOrders() {
         const container = document.getElementById('ordersList');
-        const filtered = getFilteredOrders();
+        const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+        let filtered = getFilteredOrders().filter(o =>
+            !searchTerm ||
+            (o.order_id || '').toLowerCase().includes(searchTerm) ||
+            (o.customer_name || '').toLowerCase().includes(searchTerm) ||
+            (o.customer_mobile || '').includes(searchTerm)
+        );
 
         if (filtered.length === 0) {
             container.innerHTML = `
@@ -289,6 +299,7 @@
         document.getElementById('loginBox').style.display = 'block';
         document.getElementById('productionPassword').value = '';
     }
+    document.getElementById('searchInput')?.addEventListener('input', () => renderOrders());
 </script>
 </body>
 </html>
