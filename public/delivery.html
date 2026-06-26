@@ -60,7 +60,8 @@
     <div id="dashboard" style="display:none;">
 
         <!-- Stats -->
-        <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="grid grid-cols-3 gap-4 mb-6">
+            
             <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500">
                 <p class="text-xs text-gray-500">Ready for Pickup</p>
                 <p class="text-2xl font-bold text-green-600" id="statReady">0</p>
@@ -140,15 +141,18 @@
 
     function updateStats() {
         document.getElementById('statReady').innerText = allOrders.filter(o => o.order_status === 'Ready for Delivery').length;
-        document.getElementById('statOut').innerText = allOrders.filter(o => o.order_status === 'Out for Delivery').length;
+       document.getElementById('statOut').innerText = allOrders.filter(o => o.order_status === 'Out for Delivery').length;
+document.getElementById('statDelivered').innerText = allOrders.filter(o => o.order_status === 'Delivered').length;
     }
 
     function filterOrders(status) {
         currentFilter = status;
-        const tabs = {
-            'all': 'tab-all',
-            'Ready for Delivery': 'tab-Ready-for-Delivery',
-            'Out for Delivery': 'tab-Out-for-Delivery'
+       const tabs = {
+    'all': 'tab-all',
+    'Ready for Delivery': 'tab-Ready-for-Delivery',
+    'Out for Delivery': 'tab-Out-for-Delivery',
+    'Delivered': 'tab-Delivered'
+};
         };
         Object.entries(tabs).forEach(([key, id]) => {
             const btn = document.getElementById(id);
