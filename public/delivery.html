@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chakki Walaa - Delivery Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f3f4f6; }
+        .order-card { transition: all 0.2s ease; cursor: pointer; }
+        .order-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        .tab-active { background-color: #803d0a !important; color: white !important; }
+        .tab-inactive { background-color: #e5e7eb !important; color: #4b5563 !important; }
+        .status-badge { padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+        .status-Ready-for-Delivery { background: #d1fae5; color: #065f46; }
+        .status-Out-for-Delivery { background: #e9d5ff; color: #6b21a5; }
+        .notification-toast { position: fixed; top: 20px; right: 20px; background: #16a34a; color: white; padding: 12px 24px; border-radius: 12px; z-index: 1000; display: none; align-items: center; gap: 10px; }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<div id="notificationToast" class="notification-toast">
+    <span>🔔</span>
+    <span id="toastMessage">Status updated!</span>
+</div>
+
+<div class="container mx-auto px-4 py-6">
+
+    <!-- Header -->
+    <div id="deliveryHeader" style="display:none;">
+        <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
+            <div>
+                <h1 class="text-3xl font-bold text-amber-800">🚚 Chakki Walaa Delivery</h1>
+                <p class="text-gray-500 text-sm">Delivery partner dashboard</p>
+            </div>
+            <div class="flex gap-3 flex-wrap">
+                <button onclick="loadOrders()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">🔄 Refresh</button>
+                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">🚪 Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Box -->
+    <div id="loginBox" class="bg-white rounded-2xl shadow-lg p-8 max-w-md mx-auto">
+        <div class="text-center mb-6">
+            <div class="text-5xl mb-3">🚚</div>
+            <h2 class="text-2xl font-bold">Delivery Login</h2>
+            <p class="text-gray-500 text-sm mt-1">Enter your credentials to access delivery dashboard</p>
+        </div>
+        <form onsubmit="event.preventDefault(); login()">
+            <input type="password" id="deliveryPassword" placeholder="Enter Delivery Password"
+                class="w-full p-3 border rounded-xl mb-4" autocomplete="new-password">
+            <button type="submit" class="w-full bg-gray-400 text-black py-3 rounded-xl font-semibold">Login</button>
+        </form>
+        <div id="loginError" class="text-red-500 text-sm mt-3 text-center hidden"></div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" style="display:none;">
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500">
+                <p class="text-xs text-gray-500">Ready for Pickup</p>
+                <p class="text-2xl font-bold text-green-600" id="statReady">0</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-purple-500">
+                <p class="text-xs text-gray-500">Out for Delivery</p>
+                <p class="text-2xl font-bold text-purple-600" id="statOut">0</p>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="bg-white rounded-xl p-4 mb-6 shadow-sm">
+            <input type="text" id="searchInput" placeholder="Search by Order ID, Customer Name, or Mobile Number..." class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="flex flex-wrap gap-2 mb-6">
+            <button onclick="filterOrders('all')" id="tab-all" class="tab-active px-5 py-2.5 rounded-full font-semibold text-sm transition-all">📋 All Orders</button>
+            <button onclick="filterOrders('Ready for Delivery')" id="tab-Ready-for-Delivery" class="tab-inactive px-5 py-2.5 rounded-full font-semibold text-sm transition-all">✅ Ready for Pickup</button>
+            <button onclick="filterOrders('Out for Delivery')" id="tab-Out-for-Delivery" class="tab-inactive px-5 py-2.5 rounded-full font-semibold text-sm transition-all">🚚 Out for Delivery</button>
+        </div>
+
+        <div id="ordersList" class="space-y-4"></div>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'https://api.chakkiwalaa.com/api';
+    let deliveryKey = null;
+    let allOrders = [];
+    let currentFilter = 'all';
+    let previousOrderCount = 0;
+    let refreshInterval = null;
+
+    function safeNumber(value, defaultValue = 0) {
+        const num = Number(value);
+        return isNaN(num) ? defaultValue : num;
+    }
+
+    async function login() {
+        const password = document.getElementById('deliveryPassword').value;
+        if (password !== 'chakki@delivery2024') {
+            document.getElementById('loginError').innerText = 'Invalid password';
+            document.getElementById('loginError').classList.remove('hidden');
+            return;
+        }
+        deliveryKey = password;
+        document.getElementById('loginBox').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('deliveryHeader').style.display = 'block';
+        await loadOrders();
+        startAutoRefresh();
+    }
+
+    async function loadOrders() {
+        if (!deliveryKey) return;
+        try {
+            const response = await fetch(`${API_URL}/delivery/orders`, {
+                headers: { 'X-Delivery-Key': deliveryKey }
+            });
+            const data = await response.json();
+            if (data.success) {
+                const newCount = data.orders?.length || 0;
+                if (previousOrderCount > 0 && newCount > previousOrderCount) {
+                    showNotification('📦 New order ready for pickup!');
+                }
+                previousOrderCount = newCount;
+                allOrders = data.orders || [];
+                updateStats();
+                renderOrders();
+            }
+        } catch (error) {
+            console.error('Error loading orders:', error);
+        }
+    }
+
+    function updateStats() {
+        document.getElementById('statReady').innerText = allOrders.filter(o => o.order_status === 'Ready for Delivery').length;
+        document.getElementById('statOut').innerText = allOrders.filter(o => o.order_status === 'Out for Delivery').length;
+    }
+
+    function filterOrders(status) {
+        currentFilter = status;
+        const tabs = {
+            'all': 'tab-all',
+            'Ready for Delivery': 'tab-Ready-for-Delivery',
+            'Out for Delivery': 'tab-Out-for-Delivery'
+        };
+        Object.entries(tabs).forEach(([key, id]) => {
+            const btn = document.getElementById(id);
+            if (btn) btn.className = (key === status) ? 'tab-active px-5 py-2.5 rounded-full font-semibold text-sm transition-all' : 'tab-inactive px-5 py-2.5 rounded-full font-semibold text-sm transition-all';
+        });
+        renderOrders();
+    }
+
+    function getFilteredOrders() {
+        if (currentFilter === 'all') return allOrders;
+        return allOrders.filter(o => o.order_status === currentFilter);
+    }
+
+    async function updateStatus(orderId, newStatus) {
+        try {
+            const response = await fetch(`${API_URL}/delivery/update-status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Delivery-Key': deliveryKey },
+                body: JSON.stringify({ orderId, status: newStatus })
+            });
+            const data = await response.json();
+            if (data.success) {
+                showNotification(`✅ Order updated → ${newStatus}`);
+                await loadOrders();
+            } else {
+                alert('Failed to update status');
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    function getGoogleMapsLink(address) {
+        if (!address) return '#';
+        const query = encodeURIComponent(address);
+        return `https://maps.google.com/?q=${query}`;
+    }
+
+    function printOrderLabel(order) {
+        let addressObj = order.address_json;
+        if (typeof addressObj === 'string') {
+            try { addressObj = JSON.parse(addressObj); } catch(e) { addressObj = {}; }
+        }
+        const formattedAddress = addressObj?.fullAddress ||
+            (addressObj?.address_line1 ? `${addressObj.address_line1}, ${addressObj.city || ''} - ${addressObj.pincode || ''}` : 'N/A');
+
+        let itemsHtml = '';
+        let orderSubtotal = 0;
+        const items = Array.isArray(order.items) ? order.items : [];
+        items.forEach(item => {
+            const itemTotal = safeNumber(item.price) * safeNumber(item.quantity);
+            orderSubtotal += itemTotal;
+            itemsHtml += `
+                <div style="display:flex;justify-content:space-between;font-size:8px;margin-bottom:2px;padding-bottom:2px;border-bottom:1px dotted #ccc;">
+                    <span>${item.product_name} (${item.weight}) ×${item.quantity}</span>
+                    <span>₹${itemTotal}</span>
+                </div>`;
+        });
+
+        const subtotal = safeNumber(order.subtotal) || orderSubtotal;
+        const deliveryFee = safeNumber(order.delivery_fee);
+        const gst = safeNumber(order.gst) || (subtotal * 0.05);
+        const finalTotal = safeNumber(order.order_total) || (subtotal + deliveryFee + gst);
+        const qrId = 'qr_' + order.order_id.replace(/[^a-zA-Z0-9]/g, '_');
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html><html><head>
+            <title>Print Label - ${order.order_id}</title>
+            <style>
+                @media print { body { margin:0; padding:5mm; } .no-print { display:none; } @page { margin:5mm; size:A4; } }
+                body { font-family:'Courier New',monospace; margin:0; padding:10mm; background:white; }
+                .label { width:100%; background:white; font-size:13px; padding:5mm; margin:0 auto; line-height:1.5; }
+                .header { text-align:center; border-bottom:2px dashed #803d0a; padding-bottom:5px; margin-bottom:10px; }
+                .section { margin-bottom:10px; border-bottom:1px dotted #ccc; padding-bottom:8px; }
+                .section-title { font-weight:bold; font-size:11px; background:#f3f4f6; padding:2px 5px; margin-bottom:5px; }
+                .row { display:flex; justify-content:space-between; margin-bottom:4px; font-size:11px; }
+                .total-row { display:flex; justify-content:space-between; font-weight:bold; font-size:14px; border-top:2px dotted #ccc; padding-top:5px; margin-top:5px; }
+                .footer { text-align:center; font-size:9px; margin-top:10px; color:#666; border-top:1px dotted #ccc; padding-top:5px; }
+            </style>
+            </head><body>
+            <div class="label">
+                <div class="header">
+                    <img src="/Images/Logo.png" style="max-height:35px;display:block;margin:0 auto 5px;" onerror="this.style.display='none'">
+                    <p style="font-size:10px;margin:2px 0;">Fresh Stone-Milled Flour</p>
+                    <p style="font-size:10px;margin:2px 0;font-weight:bold;">Order: ${order.order_id}</p>
+                </div>
+                <div class="section">
+                    <div class="section-title">👤 CUSTOMER DETAILS</div>
+                    <div class="row"><span>Name:</span><span><b>${order.customer_name || 'N/A'}</b></span></div>
+                    <div class="row"><span>Mobile:</span><span><b>${order.customer_mobile || 'N/A'}</b></span></div>
+                    <div class="row"><span>Address:</span><span style="text-align:right;max-width:70%;">${formattedAddress}</span></div>
+                    <div class="row"><span>Delivery Slot:</span><span>${order.delivery_slot || 'N/A'}</span></div>
+                </div>
+                <div class="section">
+                    <div class="section-title">📦 ORDER ITEMS</div>
+                    ${itemsHtml}
+                </div>
+                <div class="section">
+                    <div class="section-title">💰 PRICE BREAKDOWN</div>
+                    <div class="row"><span>Subtotal:</span><span>₹${subtotal}</span></div>
+                    <div class="row"><span>Delivery Fee:</span><span>${deliveryFee === 0 ? 'FREE' : '₹' + deliveryFee}</span></div>
+                    <div class="row"><span>GST (5%):</span><span>₹${gst.toFixed(2)}</span></div>
+                    <div class="total-row"><span>GRAND TOTAL:</span><span style="color:#803d0a;">₹${finalTotal}</span></div>
+                </div>
+                <div style="text-align:center;margin:8px 0;">
+                    <p style="font-size:10px;font-weight:bold;margin-bottom:3px;">📱 SCAN & PAY WITH UPI</p>
+                    <div id="${qrId}" style="display:inline-block;padding:3px;background:white;border:1px solid #803d0a;"></div>
+                    <p style="font-size:9px;margin-top:2px;">UPI: 8800244169@upi | Pay: ₹${finalTotal}</p>
+                </div>
+                <div class="footer">
+                    <p>Thank you for shopping at Chakki Walaa!</p>
+                    <p>Freshness Guaranteed | Stone Ground Daily</p>
+                </div>
+            </div>
+            <div class="no-print" style="text-align:center;margin-top:15px;">
+                <button onclick="window.print()" style="padding:10px 20px;background:#803d0a;color:white;border:none;border-radius:5px;cursor:pointer;margin-right:10px;">🖨️ Print Label</button>
+                <button onclick="window.close()" style="padding:10px 20px;background:#6b7280;color:white;border:none;border-radius:5px;cursor:pointer;">✕ Close</button>
+            </div>
+            <scr` + `ipt src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/scr` + `ipt>
+            <scr` + `ipt>
+                function generateQR() {
+                    var upiLink = "upi://pay?pa=8800244169@upi&pn=Chakki%20Walaa&am=${finalTotal}&cu=INR";
+                    var qrEl = document.getElementById("${qrId}");
+                    if (qrEl && typeof QRCode !== "undefined") {
+                        new QRCode(qrEl, { text: upiLink, width: 100, height: 100, colorDark: "#803d0a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+                    } else { setTimeout(generateQR, 300); }
+                }
+                setTimeout(generateQR, 500);
+            <\/scr` + `ipt>
+            </body></html>
+        `);
+        printWindow.document.close();
+    }
+
+    function renderOrders() {
+        const container = document.getElementById('ordersList');
+        const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+        let filtered = getFilteredOrders().filter(o =>
+            !searchTerm ||
+            (o.order_id || '').toLowerCase().includes(searchTerm) ||
+            (o.customer_name || '').toLowerCase().includes(searchTerm) ||
+            (o.customer_mobile || '').includes(searchTerm)
+        );
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="text-center py-12 bg-white rounded-xl"><p class="text-gray-500">No orders found</p></div>';
+            return;
+        }
+
+        let html = '';
+        for (let order of filtered) {
+            const isReady = order.order_status === 'Ready for Delivery';
+            const isOut = order.order_status === 'Out for Delivery';
+            const statusClass = `status-badge status-${order.order_status?.replace(/ /g, '-')}`;
+            const borderColor = isReady ? 'border-green-400' : 'border-purple-400';
+
+            let addressObj = order.address_json;
+            if (typeof addressObj === 'string') {
+                try { addressObj = JSON.parse(addressObj); } catch(e) { addressObj = {}; }
+            }
+            const fullAddress = addressObj?.fullAddress ||
+                (addressObj?.address_line1 ? `${addressObj.address_line1}, ${addressObj.city || ''} - ${addressObj.pincode || ''}` : 'N/A');
+            const mapsLink = getGoogleMapsLink(fullAddress);
+
+            const items = Array.isArray(order.items) ? order.items : [];
+            const itemsHtml = items.map(item => {
+                const itemTotal = safeNumber(item.price) * safeNumber(item.quantity);
+                return `
+                    <div class="flex justify-between items-center py-2 border-b last:border-0">
+                        <div>
+                            <p class="font-semibold text-gray-800">${item.product_name}</p>
+                            <p class="text-xs text-gray-500">${item.weight} × ${item.quantity}</p>
+                        </div>
+                        <span class="font-semibold">₹${itemTotal}</span>
+                    </div>`;
+            }).join('');
+
+            let subtotal = 0;
+            items.forEach(item => subtotal += safeNumber(item.price) * safeNumber(item.quantity));
+            const deliveryFee = safeNumber(order.delivery_fee);
+            const gst = safeNumber(order.gst) || (subtotal * 0.05);
+            const finalTotal = safeNumber(order.order_total) || (subtotal + deliveryFee + gst);
+
+            html += `
+                <div class="order-card bg-white rounded-xl shadow-sm overflow-hidden border-l-4 ${borderColor}">
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-4 flex-wrap gap-3">
+                            <div>
+                                <p class="text-xs text-gray-500">Order ID</p>
+                                <p class="font-mono font-bold text-lg">${order.order_id}</p>
+                            </div>
+                            <div class="flex gap-2 flex-wrap items-center">
+                                <span class="${statusClass}">${isReady ? '✅ Ready for Pickup' : '🚚 Out for Delivery'}</span>
+                                <button onclick='printOrderLabel(${JSON.stringify(order).replace(/'/g, "&apos;")})' class="px-3 py-1 rounded-lg text-sm bg-green-600 text-white hover:bg-green-700">🖨️ Print Label</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <p class="text-xs text-gray-500 mb-1">Customer</p>
+                                <p class="font-semibold">${order.customer_name || 'N/A'}</p>
+                                <a href="tel:${order.customer_mobile}" class="text-blue-600 font-semibold text-sm">📞 ${order.customer_mobile || 'N/A'}</a>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <p class="text-xs text-gray-500 mb-1">Delivery Slot</p>
+                                <p class="font-semibold text-sm">${order.delivery_slot || 'N/A'}</p>
+                                <p class="text-xs text-gray-500 mt-1">${order.order_date || ''} ${order.order_time || ''}</p>
+                            </div>
+                        </div>
+
+                        <!-- Address with Google Maps -->
+                        <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-4">
+                            <div class="flex justify-between items-start gap-2">
+                                <div>
+                                    <p class="text-xs text-gray-500 mb-1">📍 Delivery Address</p>
+                                    <p class="text-sm font-medium text-gray-800">${fullAddress}</p>
+                                </div>
+                                <a href="${mapsLink}" target="_blank"
+                                    class="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-semibold text-center">
+                                    🗺️ Navigate
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Items -->
+                        <div class="bg-gray-50 rounded-lg p-3 mb-4">
+                            <p class="text-xs font-semibold text-gray-700 mb-2">📦 ORDER ITEMS</p>
+                            ${itemsHtml}
+                        </div>
+
+                        <!-- Price -->
+                        <div class="bg-gray-50 rounded-lg p-3 mb-4">
+                            <p class="text-xs font-semibold text-gray-700 mb-2">💰 PRICE BREAKDOWN</p>
+                            <div class="space-y-1 text-sm">
+                                <div class="flex justify-between"><span class="text-gray-600">Subtotal:</span><span>₹${subtotal}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-600">Delivery Fee:</span><span class="${deliveryFee === 0 ? 'text-green-600' : ''}">${deliveryFee === 0 ? 'FREE' : '₹' + deliveryFee}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-600">GST (5%):</span><span>₹${gst.toFixed(2)}</span></div>
+                                <div class="border-t pt-1 mt-1 flex justify-between font-bold"><span>GRAND TOTAL:</span><span class="text-amber-800">₹${finalTotal}</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex gap-3">
+                            ${isReady ? `
+                                <button onclick="updateStatus('${order.order_id}', 'Out for Delivery')"
+                                    class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold transition active:scale-95">
+                                    🚚 Accept & Picked Up
+                                </button>
+                            ` : ''}
+                            ${isOut ? `
+                                <button onclick="updateStatus('${order.order_id}', 'Delivered')"
+                                    class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold transition active:scale-95">
+                                    ✅ Mark Delivered
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+
+    function showNotification(message) {
+        const toast = document.getElementById('notificationToast');
+        document.getElementById('toastMessage').innerText = message;
+        toast.style.display = 'flex';
+        setTimeout(() => { toast.style.display = 'none'; }, 4000);
+    }
+
+    function startAutoRefresh() {
+        if (refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(() => { if (deliveryKey) loadOrders(); }, 10000);
+    }
+
+    function logout() {
+        if (refreshInterval) clearInterval(refreshInterval);
+        deliveryKey = null;
+        allOrders = [];
+        previousOrderCount = 0;
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('deliveryHeader').style.display = 'none';
+        document.getElementById('loginBox').style.display = 'block';
+        document.getElementById('deliveryPassword').value = '';
+    }
+
+    document.getElementById('searchInput')?.addEventListener('input', () => renderOrders());
+</script>
+</body>
+</html>
