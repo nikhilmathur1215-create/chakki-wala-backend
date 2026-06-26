@@ -5,15 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chakki Walaa - Production Panel</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
         body { font-family: system-ui, -apple-system, sans-serif; background: #f3f4f6; }
-        .notification-toast { position: fixed; top: 20px; right: 20px; background: #16a34a; color: white; padding: 12px 24px; border-radius: 12px; z-index: 1000; display: none; align-items: center; gap: 10px; font-weight: 600; }
+        .order-card { transition: all 0.2s ease; cursor: pointer; }
+        .order-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        .tab-active { background-color: #803d0a !important; color: white !important; }
+        .tab-inactive { background-color: #e5e7eb !important; color: #4b5563 !important; }
+        .status-badge { padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
         .status-Processing { background: #fef3c7; color: #92400e; }
         .status-Process-Started { background: #dbeafe; color: #1e40af; }
         .status-Ready-for-Delivery { background: #d1fae5; color: #065f46; }
-        .order-card { transition: all 0.2s ease; }
-        .pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .notification-toast { position: fixed; top: 20px; right: 20px; background: #16a34a; color: white; padding: 12px 24px; border-radius: 12px; z-index: 1000; display: none; align-items: center; gap: 10px; }
+        @media print {
+            body * { visibility: hidden; }
+            .print-label-container, .print-label-container * { visibility: visible; }
+            .print-label-container { position: absolute; top: 0; left: 0; width: 100%; margin: 0; padding: 0; }
+            .no-print { display: none !important; }
+            button { display: none !important; }
+            @page { size: 58mm auto; margin: 1mm; }
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -23,70 +34,70 @@
     <span id="toastMessage">Status updated!</span>
 </div>
 
-<div class="container mx-auto px-4 py-6 max-w-5xl">
+<div class="container mx-auto px-4 py-6">
+
+    <!-- Header -->
+    <div id="productionHeader" style="display:none;">
+        <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
+            <div>
+                <h1 class="text-3xl font-bold text-amber-800">🏭 Chakki Walaa Production</h1>
+                <p class="text-gray-500 text-sm">Floor operations — grind & prepare orders</p>
+            </div>
+            <div class="flex gap-3 flex-wrap">
+                <button onclick="loadOrders()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">🔄 Refresh</button>
+                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">🚪 Logout</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Login Box -->
-    <div id="loginBox" class="bg-white rounded-2xl shadow-lg p-8 max-w-md mx-auto mt-20">
+    <div id="loginBox" class="bg-white rounded-2xl shadow-lg p-8 max-w-md mx-auto">
         <div class="text-center mb-6">
             <div class="text-5xl mb-3">🏭</div>
-            <h2 class="text-2xl font-bold text-gray-800">Production Panel</h2>
-            <p class="text-gray-500 text-sm mt-1">Chakki Walaa Floor Operations</p>
+            <h2 class="text-2xl font-bold">Production Login</h2>
+            <p class="text-gray-500 text-sm mt-1">Enter your credentials to access production floor</p>
         </div>
         <form onsubmit="event.preventDefault(); login()">
             <input type="password" id="productionPassword" placeholder="Enter Production Password"
                 class="w-full p-3 border rounded-xl mb-4" autocomplete="new-password">
-            <button type="submit" class="w-full bg-amber-800 text-white py-3 rounded-xl font-semibold hover:bg-amber-900">
-                Login to Production
-            </button>
+            <button type="submit" class="w-full bg-gray-400 text-black py-3 rounded-xl font-semibold">Login</button>
         </form>
         <div id="loginError" class="text-red-500 text-sm mt-3 text-center hidden"></div>
     </div>
 
     <!-- Dashboard -->
     <div id="dashboard" style="display:none;">
-        <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
-            <div>
-                <h1 class="text-3xl font-bold text-amber-800">🏭 Production Floor</h1>
-                <p class="text-gray-500 text-sm">Manage flour grinding & order preparation</p>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-yellow-500">
+                <p class="text-xs text-gray-500">Pending</p>
+                <p class="text-2xl font-bold text-yellow-600" id="statPending">0</p>
             </div>
-            <div class="flex gap-3">
-                <button onclick="loadOrders()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">🔄 Refresh</button>
-                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">🚪 Logout</button>
+            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-blue-500">
+                <p class="text-xs text-gray-500">In Progress</p>
+                <p class="text-2xl font-bold text-blue-600" id="statInProgress">0</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500">
+                <p class="text-xs text-gray-500">Ready</p>
+                <p class="text-2xl font-bold text-green-600" id="statReady">0</p>
             </div>
         </div>
 
-        <!-- Stats -->
-        <div class="grid grid-cols-3 gap-4 mb-6">
-            <div class="bg-yellow-50 border-l-4 border-yellow-500 rounded-xl p-4 shadow-sm">
-                <p class="text-xs text-gray-500">Pending</p>
-                <p class="text-2xl font-bold text-yellow-600" id="statPending">0</p>
-                <p class="text-xs text-gray-400">Awaiting start</p>
-            </div>
-            <div class="bg-blue-50 border-l-4 border-blue-500 rounded-xl p-4 shadow-sm">
-                <p class="text-xs text-gray-500">In Progress</p>
-                <p class="text-2xl font-bold text-blue-600" id="statInProgress">0</p>
-                <p class="text-xs text-gray-400">Being processed</p>
-            </div>
-            <div class="bg-green-50 border-l-4 border-green-500 rounded-xl p-4 shadow-sm">
-                <p class="text-xs text-gray-500">Ready</p>
-                <p class="text-2xl font-bold text-green-600" id="statReady">0</p>
-                <p class="text-xs text-gray-400">Ready for delivery</p>
-            </div>
+        <!-- Search -->
+        <div class="bg-white rounded-xl p-4 mb-6 shadow-sm">
+            <input type="text" id="searchInput" placeholder="Search by Order ID, Customer Name, or Mobile Number..." class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
         </div>
 
         <!-- Filter Tabs -->
-        <div class="flex gap-2 mb-6 flex-wrap">
-            <button onclick="filterOrders('all')" id="tab-all" class="bg-amber-800 text-white px-4 py-2 rounded-full text-sm font-semibold">All Orders</button>
-            <button onclick="filterOrders('Processing')" id="tab-Processing" class="bg-gray-200 text-gray-600 px-4 py-2 rounded-full text-sm font-semibold">⏳ Pending</button>
-            <button onclick="filterOrders('Process Started')" id="tab-Process-Started" class="bg-gray-200 text-gray-600 px-4 py-2 rounded-full text-sm font-semibold">⚙️ In Progress</button>
-            <button onclick="filterOrders('Ready for Delivery')" id="tab-Ready-for-Delivery" class="bg-gray-200 text-gray-600 px-4 py-2 rounded-full text-sm font-semibold">✅ Ready</button>
+        <div class="flex flex-wrap gap-2 mb-6">
+            <button onclick="filterOrders('all')" id="tab-all" class="tab-active px-5 py-2.5 rounded-full font-semibold text-sm transition-all">📋 All Orders</button>
+            <button onclick="filterOrders('Processing')" id="tab-Processing" class="tab-inactive px-5 py-2.5 rounded-full font-semibold text-sm transition-all">⏳ Pending</button>
+            <button onclick="filterOrders('Process Started')" id="tab-Process-Started" class="tab-inactive px-5 py-2.5 rounded-full font-semibold text-sm transition-all">⚙️ In Progress</button>
+            <button onclick="filterOrders('Ready for Delivery')" id="tab-Ready-for-Delivery" class="tab-inactive px-5 py-2.5 rounded-full font-semibold text-sm transition-all">✅ Ready</button>
         </div>
 
-        <div class="bg-white rounded-xl p-4 mb-6 shadow-sm">
-    <input type="text" id="searchInput" placeholder="Search by Order ID, Customer Name, or Mobile Number..." class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
-</div>
-
-<div id="ordersList" class="space-y-4"></div>
+        <div id="ordersList" class="space-y-4"></div>
     </div>
 </div>
 
@@ -98,6 +109,11 @@
     let previousOrderCount = 0;
     let refreshInterval = null;
 
+    function safeNumber(value, defaultValue = 0) {
+        const num = Number(value);
+        return isNaN(num) ? defaultValue : num;
+    }
+
     async function login() {
         const password = document.getElementById('productionPassword').value;
         if (password !== 'chakki@production2024') {
@@ -108,6 +124,7 @@
         productionKey = password;
         document.getElementById('loginBox').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('productionHeader').style.display = 'block';
         await loadOrders();
         startAutoRefresh();
     }
@@ -142,15 +159,10 @@
 
     function filterOrders(status) {
         currentFilter = status;
-        const tabs = ['all', 'Processing', 'Process Started', 'Ready for Delivery'];
-        tabs.forEach(tab => {
-            const id = `tab-${tab.replace(/ /g, '-')}`;
+        const tabs = { 'all': 'tab-all', 'Processing': 'tab-Processing', 'Process Started': 'tab-Process-Started', 'Ready for Delivery': 'tab-Ready-for-Delivery' };
+        Object.entries(tabs).forEach(([key, id]) => {
             const btn = document.getElementById(id);
-            if (btn) {
-                btn.className = (tab === status || (status === 'all' && tab === 'all'))
-                    ? 'bg-amber-800 text-white px-4 py-2 rounded-full text-sm font-semibold'
-                    : 'bg-gray-200 text-gray-600 px-4 py-2 rounded-full text-sm font-semibold';
-            }
+            if (btn) btn.className = (key === status) ? 'tab-active px-5 py-2.5 rounded-full font-semibold text-sm transition-all' : 'tab-inactive px-5 py-2.5 rounded-full font-semibold text-sm transition-all';
         });
         renderOrders();
     }
@@ -164,15 +176,12 @@
         try {
             const response = await fetch(`${API_URL}/production/update-status`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Production-Key': productionKey
-                },
+                headers: { 'Content-Type': 'application/json', 'X-Production-Key': productionKey },
                 body: JSON.stringify({ orderId, status: newStatus })
             });
             const data = await response.json();
             if (data.success) {
-                showNotification(`✅ Order ${orderId} → ${newStatus}`);
+                showNotification(`✅ Order updated → ${newStatus}`);
                 await loadOrders();
             } else {
                 alert('Failed to update status');
@@ -180,6 +189,100 @@
         } catch (error) {
             alert('Error: ' + error.message);
         }
+    }
+
+    function printOrderLabel(order) {
+        let addressObj = order.address_json;
+        if (typeof addressObj === 'string') {
+            try { addressObj = JSON.parse(addressObj); } catch(e) { addressObj = {}; }
+        }
+
+        const formattedAddress = addressObj?.fullAddress || 
+            (addressObj?.address_line1 ? `${addressObj.address_line1}, ${addressObj.city || ''} - ${addressObj.pincode || ''}` : 'N/A');
+
+        let itemsHtml = '';
+        let orderSubtotal = 0;
+        const items = Array.isArray(order.items) ? order.items : [];
+        items.forEach(item => {
+            const itemTotal = safeNumber(item.price) * safeNumber(item.quantity);
+            orderSubtotal += itemTotal;
+            itemsHtml += `
+                <div style="display:flex; justify-content:space-between; font-size:8px; margin-bottom:2px; padding-bottom:2px; border-bottom:1px dotted #ccc;">
+                    <span>${item.product_name} (${item.weight})</span>
+                    <span>×${item.quantity}</span>
+                </div>`;
+        });
+
+        const subtotal = safeNumber(order.subtotal) || orderSubtotal;
+        const deliveryFee = safeNumber(order.delivery_fee);
+        const gst = safeNumber(order.gst) || (subtotal * 0.05);
+        const finalTotal = safeNumber(order.order_total) || (subtotal + deliveryFee + gst);
+        const qrId = 'qr_' + order.order_id.replace(/[^a-zA-Z0-9]/g, '_');
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html><html><head>
+            <title>Print Label - ${order.order_id}</title>
+            <style>
+                @media print { body { margin:0; padding:0; } .no-print { display:none; } @page { margin:0; size:auto; } }
+                body { font-family:'Courier New',monospace; margin:0; padding:5mm; background:white; }
+                .label { width:56mm; max-width:56mm; background:white; font-size:9px; padding:2mm; margin:0 auto; line-height:1.25; }
+                .header { text-align:center; border-bottom:1px dashed #803d0a; padding-bottom:3px; margin-bottom:5px; }
+                .section { margin-bottom:6px; border-bottom:1px dotted #ccc; padding-bottom:4px; }
+                .section-title { font-weight:bold; font-size:8px; background:#f3f4f6; padding:1px 3px; margin-bottom:3px; }
+                .row { display:flex; justify-content:space-between; margin-bottom:2px; font-size:8px; }
+                .footer { text-align:center; font-size:6px; margin-top:6px; color:#666; border-top:1px dotted #ccc; padding-top:3px; }
+            </style>
+            </head><body>
+            <div class="label">
+                <div class="header">
+                    <img src="/Images/Logo.png" style="max-height:25px;display:block;margin:0 auto 3px;" onerror="this.style.display='none'">
+                    <p style="font-size:7px;margin:2px 0;">Fresh Stone-Milled Flour</p>
+                    <p style="font-size:7px;margin:2px 0;">Order: ${order.order_id}</p>
+                </div>
+                <div class="section">
+                    <div class="section-title">👤 CUSTOMER</div>
+                    <div class="row"><span>Name:</span><span><b>${order.customer_name || 'N/A'}</b></span></div>
+                    <div class="row"><span>Mobile:</span><span>${order.customer_mobile || 'N/A'}</span></div>
+                    <div class="row"><span>Address:</span><span style="text-align:right;font-size:7px;max-width:35mm;">${formattedAddress}</span></div>
+                </div>
+                <div class="section">
+                    <div class="section-title">📦 ORDER ITEMS</div>
+                    ${itemsHtml}
+                </div>
+                <div class="section">
+                    <div class="section-title">🕐 DELIVERY SLOT</div>
+                    <div class="row"><span>${order.delivery_slot || 'N/A'}</span></div>
+                </div>
+                <div style="text-align:center;margin:4px 0;">
+                    <p style="font-size:7px;font-weight:bold;margin-bottom:2px;">📱 SCAN & PAY WITH UPI</p>
+                    <div id="${qrId}" style="display:inline-block;padding:2px;background:white;border:1px solid #803d0a;"></div>
+                    <p style="font-size:6px;margin-top:1px;">UPI: 8800244169@upi</p>
+                    <p style="font-size:8px;font-weight:bold;color:#803d0a;">Pay: ₹${finalTotal}</p>
+                </div>
+                <div class="footer">
+                    <p>Thank you for shopping at Chakki Walaa!</p>
+                    <p>Freshness Guaranteed | Stone Ground Daily</p>
+                </div>
+            </div>
+            <div class="no-print" style="text-align:center;margin-top:10px;">
+                <button onclick="window.print()" style="padding:8px 16px;background:#803d0a;color:white;border:none;border-radius:5px;cursor:pointer;margin-right:8px;">🖨️ Print Label</button>
+                <button onclick="window.close()" style="padding:8px 16px;background:#6b7280;color:white;border:none;border-radius:5px;cursor:pointer;">✕ Close</button>
+            </div>
+            <scr` + `ipt src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/scr` + `ipt>
+            <scr` + `ipt>
+                function generateQR() {
+                    var upiLink = "upi://pay?pa=8800244169@upi&pn=Chakki%20Walaa&am=${finalTotal}&cu=INR";
+                    var qrEl = document.getElementById("${qrId}");
+                    if (qrEl && typeof QRCode !== "undefined") {
+                        new QRCode(qrEl, { text: upiLink, width: 90, height: 90, colorDark: "#803d0a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+                    } else { setTimeout(generateQR, 300); }
+                }
+                setTimeout(generateQR, 500);
+            <\/scr` + `ipt>
+            </body></html>
+        `);
+        printWindow.document.close();
     }
 
     function renderOrders() {
@@ -193,62 +296,54 @@
         );
 
         if (filtered.length === 0) {
-            container.innerHTML = `
-                <div class="text-center py-16 bg-white rounded-xl">
-                    <div class="text-5xl mb-3">✅</div>
-                    <p class="text-gray-500 font-semibold">No orders in this category</p>
-                </div>`;
+            container.innerHTML = '<div class="text-center py-12 bg-white rounded-xl"><p class="text-gray-500">No orders found</p></div>';
             return;
         }
 
-        container.innerHTML = filtered.map(order => {
-            const statusClass = `status-${order.order_status?.replace(/ /g, '-')}`;
+        let html = '';
+        for (let order of filtered) {
+            const statusClass = `status-badge status-${order.order_status?.replace(/ /g, '-')}`;
             const items = Array.isArray(order.items) ? order.items : [];
             const isPending = order.order_status === 'Processing';
             const isInProgress = order.order_status === 'Process Started';
             const isReady = order.order_status === 'Ready for Delivery';
+            const borderColor = isPending ? 'border-yellow-400' : isInProgress ? 'border-blue-400' : 'border-green-400';
 
+            // Items — NO price shown
             const itemsHtml = items.map(item => `
                 <div class="flex justify-between items-center py-2 border-b last:border-0">
                     <div>
                         <p class="font-semibold text-gray-800">${item.product_name}</p>
                         <p class="text-xs text-gray-500">${item.weight}</p>
                     </div>
-                    <div class="text-right">
-                        <p class="font-bold text-lg text-amber-800">×${item.quantity}</p>
-                        <p class="text-xs text-gray-500">₹${item.price * item.quantity}</p>
-                    </div>
+                    <p class="font-bold text-lg text-amber-800">×${item.quantity}</p>
                 </div>
             `).join('');
 
-            return `
-                <div class="order-card bg-white rounded-xl shadow-sm overflow-hidden border-l-4 ${isPending ? 'border-yellow-400' : isInProgress ? 'border-blue-400' : 'border-green-400'}">
+            html += `
+                <div class="order-card bg-white rounded-xl shadow-sm overflow-hidden border-l-4 ${borderColor}">
                     <div class="p-5">
                         <div class="flex justify-between items-start mb-4 flex-wrap gap-3">
                             <div>
                                 <p class="text-xs text-gray-500">Order ID</p>
                                 <p class="font-mono font-bold text-lg">${order.order_id}</p>
-                                <p class="text-xs text-gray-500 mt-1">⏰ ${order.order_date} ${order.order_time}</p>
                             </div>
-                            <span class="px-3 py-1 rounded-full text-sm font-semibold ${statusClass}">
-                                ${isPending ? '⏳ Pending' : isInProgress ? '⚙️ In Progress' : '✅ Ready'}
-                            </span>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div class="bg-gray-50 rounded-lg p-3">
-                                <p class="text-xs text-gray-500">Customer</p>
-                                <p class="font-semibold">${order.customer_name || 'N/A'}</p>
-                                <p class="text-sm text-gray-600">📞 ${order.customer_mobile || 'N/A'}</p>
-                            </div>
-                            <div class="bg-gray-50 rounded-lg p-3">
-                                <p class="text-xs text-gray-500">Delivery Slot</p>
-                                <p class="font-semibold text-sm">${order.delivery_slot || 'N/A'}</p>
-                                <p class="text-xs text-gray-500 mt-1">${order.payment_method?.toUpperCase() || 'COD'}</p>
+                            <div class="flex gap-2 flex-wrap items-center">
+                                <span class="${statusClass}">
+                                    ${isPending ? '⏳ Pending' : isInProgress ? '⚙️ Process Started' : '✅ Ready for Delivery'}
+                                </span>
+                                <button onclick='printOrderLabel(${JSON.stringify(order).replace(/'/g, "&apos;")})' class="px-3 py-1 rounded-lg text-sm bg-green-600 text-white hover:bg-green-700">🖨️ Print Label</button>
                             </div>
                         </div>
 
-                        <div class="bg-amber-50 rounded-lg p-3 mb-4">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
+                            <div><p class="text-xs text-gray-500">Customer</p><p class="font-semibold">${order.customer_name || 'N/A'}</p><p class="text-sm text-gray-600">📞 ${order.customer_mobile || 'N/A'}</p></div>
+                            <div><p class="text-xs text-gray-500">Order Date</p><p class="font-semibold">${order.order_date || 'N/A'}</p><p class="text-sm text-gray-600">⏰ ${order.order_time || 'N/A'}</p></div>
+                            <div><p class="text-xs text-gray-500">Payment</p><p class="font-semibold capitalize">${order.payment_method || 'UPI'}</p></div>
+                            <div><p class="text-xs text-gray-500">Delivery Slot</p><p class="font-semibold">${order.delivery_slot || 'N/A'}</p></div>
+                        </div>
+
+                        <div class="bg-amber-50 border border-amber-100 rounded-lg p-3 mb-4">
                             <p class="text-xs font-semibold text-amber-800 mb-2">📦 ITEMS TO GRIND</p>
                             ${itemsHtml}
                         </div>
@@ -267,15 +362,16 @@
                                 </button>
                             ` : ''}
                             ${isReady ? `
-                                <div class="flex-1 bg-green-100 text-green-700 py-3 rounded-xl font-bold text-center">
-                                    ✅ Awaiting Pickup
+                                <div class="flex-1 bg-green-100 text-green-700 py-3 rounded-xl font-bold text-center border border-green-200">
+                                    ✅ Awaiting Pickup by Delivery
                                 </div>
                             ` : ''}
                         </div>
                     </div>
                 </div>
             `;
-        }).join('');
+        }
+        container.innerHTML = html;
     }
 
     function showNotification(message) {
@@ -296,9 +392,11 @@
         allOrders = [];
         previousOrderCount = 0;
         document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('productionHeader').style.display = 'none';
         document.getElementById('loginBox').style.display = 'block';
         document.getElementById('productionPassword').value = '';
     }
+
     document.getElementById('searchInput')?.addEventListener('input', () => renderOrders());
 </script>
 </body>
