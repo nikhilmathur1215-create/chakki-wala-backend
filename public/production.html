@@ -224,9 +224,9 @@
             <!DOCTYPE html><html><head>
             <title>Print Label - ${order.order_id}</title>
             <style>
-                @media print { body { margin:0; padding:0; } .no-print { display:none; } @page { margin:0; size:auto; } }
-                body { font-family:'Courier New',monospace; margin:0; padding:5mm; background:white; }
-                .label { width:56mm; max-width:56mm; background:white; font-size:9px; padding:2mm; margin:0 auto; line-height:1.25; }
+                @media print { body { margin:0; padding:5mm; } .no-print { display:none; } @page { margin:5mm; size:A4; } }
+                body { font-family:'Courier New',monospace; margin:0; padding:10mm; background:white; }
+.label { width:100%; background:white; font-size:13px; padding:5mm; margin:0 auto; line-height:1.5; }
                 .header { text-align:center; border-bottom:1px dashed #803d0a; padding-bottom:3px; margin-bottom:5px; }
                 .section { margin-bottom:6px; border-bottom:1px dotted #ccc; padding-bottom:4px; }
                 .section-title { font-weight:bold; font-size:8px; background:#f3f4f6; padding:1px 3px; margin-bottom:3px; }
@@ -257,8 +257,7 @@
                 <div style="text-align:center;margin:4px 0;">
                     <p style="font-size:7px;font-weight:bold;margin-bottom:2px;">📱 SCAN & PAY WITH UPI</p>
                     <div id="${qrId}" style="display:inline-block;padding:2px;background:white;border:1px solid #803d0a;"></div>
-                    <p style="font-size:6px;margin-top:1px;">UPI: 8800244169@upi</p>
-                    <p style="font-size:8px;font-weight:bold;color:#803d0a;">Pay: ₹${finalTotal}</p>
+                    
                 </div>
                 <div class="footer">
                     <p>Thank you for shopping at Chakki Walaa!</p>
