@@ -221,7 +221,7 @@
         function updateStats() {
             document.getElementById('statTotal').innerText = allOrders.length;
             document.getElementById('statConfirmed').innerText = allOrders.filter(o => o.order_status === 'Confirmed').length;
-            document.getElementById('statProcessing').innerText = allOrders.filter(o => o.order_status === 'Processing').length;
+            document.getElementById('statProcessing').innerText = allOrders.filter(o => ['Processing', 'Process Started', 'Ready for Delivery'].includes(o.order_status)).length;
             document.getElementById('statOut').innerText = allOrders.filter(o => o.order_status === 'Out for Delivery').length;
             document.getElementById('statDelivered').innerText = allOrders.filter(o => o.order_status === 'Delivered').length;
             document.getElementById('statCancelled').innerText = allOrders.filter(o => o.order_status === 'Cancelled').length;
@@ -243,8 +243,11 @@
             renderOrders();
         }
 
-        function getFilteredOrders() {
-            let filtered = currentStatus === 'all' ? allOrders : allOrders.filter(o => o.order_status === currentStatus);
+       function getFilteredOrders() {
+    let filtered = currentStatus === 'all' ? allOrders : 
+        currentStatus === 'Processing' ? 
+        allOrders.filter(o => ['Processing', 'Process Started', 'Ready for Delivery'].includes(o.order_status)) :
+        allOrders.filter(o => o.order_status === currentStatus);
             const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
             if (searchTerm) {
                 filtered = filtered.filter(o => 
