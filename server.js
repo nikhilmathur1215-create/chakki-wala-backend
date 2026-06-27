@@ -559,3 +559,40 @@ app.post('/api/production/update-status', verifyProduction, async (req, res) => 
 app.get('/production', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'production.html'));
 });
+
+
+// ============================================
+// DELIVERY PANEL APIS
+// ============================================
+function verifyDelivery(req, res, next) {
+    const key = req.headers['x-delivery-key'];
+    if (!key || key !== process.env.DELIVERY_KEY) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    next();
+}
+
+app.get('/api/delivery/orders', verifyDelivery, async (req, res) => {
+    const orders = await pool.query(
+        `SELECT o.*, COALESCE(json_agg(oi.*) FILTER (WHERE oi.id IS NOT NULL), '[]') as items 
+         FROM orders o 
+         LEFT JOIN order_items oi ON o.order_id = oi.order_id 
+         WHERE o.order_status IN ('Ready for Delivery', 'Out for Delivery', 'Delivered')
+         GROUP BY o.order_id 
+         ORDER BY o.created_at ASC`
+    );
+    res.json({ success: true, orders: orders.rows });
+});
+
+app.post('/api/delivery/update-status', verifyDelivery, async (req, res) => {
+    const { orderId, status } = req.body;
+    if (!['Out for Delivery', 'Delivered'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status' });
+    }
+    await pool.query('UPDATE orders SET order_status = $1 WHERE order_id = $2', [status, orderId]);
+    res.json({ success: true });
+});
+
+app.get('/delivery', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'delivery.html'));
+});
