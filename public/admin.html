@@ -170,8 +170,8 @@
     </div>
 <!-- Live User List Panel -->
 <div id="userListPanel" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden p-4 z-50">
-    <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[85vh] flex flex-col shadow-2xl">
-        <div class="sticky top-0 bg-white border-b p-4 flex justify-between items-center rounded-t-2xl">
+    <div class="bg-white rounded-2xl w-full max-w-5xl shadow-2xl" style="height:85vh;display:flex;flex-direction:column;">
+        <div style="flex-shrink:0;" class="bg-white border-b p-4 flex justify-between items-center rounded-t-2xl">
             <div>
                 <h3 class="text-xl font-bold">👥 Live Registered Users</h3>
                 <p class="text-xs text-gray-500">Auto-refreshes every 10 seconds · <span id="userCount">0</span> users registered</p>
@@ -181,10 +181,10 @@
                 <button onclick="closeUserList()" class="text-gray-500 text-2xl hover:text-gray-700">&times;</button>
             </div>
         </div>
-        <div class="p-4 border-b">
+        <div style="flex-shrink:0;" class="p-4 border-b">
             <input type="text" id="userSearchInput" placeholder="Search by Name, Mobile, or Email..." class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
         </div>
-        <div class="overflow-auto flex-1">
+        <div style="overflow-y:auto;flex:1;">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 sticky top-0">
                     <tr>
